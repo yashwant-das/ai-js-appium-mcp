@@ -1,8 +1,7 @@
-Open the Amazon mobile app on my connected iPhone.
+Open the Reminders app on the iOS simulator.
 
-Search for "iPhone 17 Pro".
-Select the first search result.
-Add the item to the cart.
-Proceed to checkout.
-If prompted, stop at the sign-in screen. Do not enter credentials or place an order.
+Tap "New Reminder".
+Enter the title "Test reminder from Appium".
+Tap "Done" to save the reminder.
+Verify the reminder appears in the list.
 Generate a JavaScript Appium test that automates all completed steps and save it as tests/generated.test.js.
