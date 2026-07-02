@@ -15,8 +15,7 @@ exports.config = {
       'appium:udid': 'E60B3481-81CA-465F-8D62-AA87C48FAF3B',
       'appium:bundleId': 'com.apple.reminders',
       'appium:noReset': true,
-      'appium:waitForAppScript': 'true',
-      'appium:webDriverAgentUrl': 'http://127.0.0.1:56569'
+      'appium:waitForAppScript': 'true'
     }
   ],
   logLevel: 'info',
