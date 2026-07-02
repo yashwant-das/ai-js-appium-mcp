@@ -1,12 +1,21 @@
 {
   "name": "appium-mcp-playground",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "AI-driven Appium MCP test framework - generate WDIO tests from markdown prompts",
+  "main": "src/cli.js",
   "scripts": {
-    "test": "wdio run wdio.conf.js"
+    "test": "wdio run wdio.conf.js",
+    "generate": "node src/cli.js generate",
+    "verify": "node src/cli.js verify",
+    "clean": "node src/cli.js clean"
   },
-  "keywords": [],
+  "keywords": [
+    "appium",
+    "mcp",
+    "webdriverio",
+    "testing",
+    "mobile"
+  ],
   "author": "",
   "license": "ISC",
   "type": "commonjs",
@@ -19,6 +28,8 @@
     "mocha": "^11.5.0"
   },
   "dependencies": {
+    "chalk": "^4.1.2",
+    "commander": "^12.1.0",
     "webdriverio": "^9.29.1"
   }
 }
