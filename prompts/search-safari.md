@@ -8,6 +8,8 @@ version: 1
 
 # Search Appium in Safari
 
+> **Agent Instruction:** Before starting, read `AGENTS.md` to understand the workflow and constraints for this repository.
+
 ## Objective
 
 Search for **"Appium"** in the Safari app and verify that the search results page loads successfully.

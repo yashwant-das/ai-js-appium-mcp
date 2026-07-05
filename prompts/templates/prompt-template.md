@@ -8,6 +8,8 @@ version: 1
 
 # <Scenario Name>
 
+> **Agent Instruction:** Before starting, read `AGENTS.md` to understand the workflow and constraints for this repository.
+
 ## Objective
 
 <Brief description of what this scenario will test>

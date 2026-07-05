@@ -8,6 +8,8 @@ version: 1
 
 # Create Reminder
 
+> **Agent Instruction:** Before starting, read `AGENTS.md` to understand the workflow and constraints for this repository.
+
 ## Objective
 
 Create a new reminder in the Reminders app and verify that it is successfully saved and displayed in the reminders list.

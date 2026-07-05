@@ -8,6 +8,8 @@ version: 1
 
 # Create Contact
 
+> **Agent Instruction:** Before starting, read `AGENTS.md` to understand the workflow and constraints for this repository.
+
 ## Objective
 
 Create a new contact in the Contacts app and verify that it is successfully saved and displayed in the contacts list.
