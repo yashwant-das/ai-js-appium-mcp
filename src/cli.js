@@ -24,7 +24,7 @@ program
   .description('Generate a WDIO test from a prompt file')
   .argument('<prompt>', 'Path to the prompt markdown file (e.g., prompts/reminders-app.md)')
   .option('--no-run', 'Skip automatic test execution after generation', false)
-  .option('-c, --config <config>', 'WDIO config file for auto-run (default: wdio.conf.js)', 'wdio.conf.js')
+  .option('-c, --config <config>', 'WDIO config file for auto-run (default: wdio-reminders.conf.js)', 'wdio-reminders.conf.js')
   .action(async (promptPath, options) => {
     console.log(chalk.bold('\n') + chalk.blue('  Appium MCP Test Framework'));
     console.log(chalk.dim('  ' + '='.repeat(45)) + '\n');
@@ -112,7 +112,7 @@ program
       console.log(chalk.dim('  ' + '-'.repeat(45)));
       
       try {
-        const config = options.config || 'wdio.conf.js';
+        const config = options.config || 'wdio-reminders.conf.js';
         console.log(chalk.dim(`  Config: ${config}`));
         console.log(chalk.dim(`  Running: wdio run ${config} --spec ${outputPath}`));
         execSync(`npx wdio run ${config} --spec ${outputPath}`, {
@@ -136,13 +136,13 @@ program
   .command('verify')
   .description('Run generated tests on the simulator')
   .argument('[test-file]', 'Path to specific test file (default: all tests in tests/)')
-  .option('-c, --config <config>', 'WDIO config file (default: wdio.conf.js)', 'wdio.conf.js')
+  .option('-c, --config <config>', 'WDIO config file (default: wdio-reminders.conf.js)', 'wdio-reminders.conf.js')
   .action((testFile, options) => {
     console.log(chalk.bold('\n') + chalk.blue('  Appium MCP Test Framework'));
     console.log(chalk.dim('  ' + '='.repeat(45)) + '\n');
 
     const specs = [];
-    const config = options.config || 'wdio.conf.js';
+    const config = options.config || 'wdio-reminders.conf.js';
 
     if (testFile) {
       // Run specific test
@@ -196,7 +196,7 @@ program
 program
   .command('clean')
   .description('Remove all generated test files')
-  .option('--keep-config', 'Keep wdio.conf.js modifications', false)
+  .option('--keep-config', 'Keep wdio-reminders.conf.js modifications', false)
   .action(() => {
     console.log(chalk.bold('\n') + chalk.blue('  Appium MCP Test Framework'));
     console.log(chalk.dim('  ' + '='.repeat(45)) + '\n');

@@ -4,11 +4,13 @@
   "description": "AI-driven Appium MCP test framework - generate WDIO tests from markdown prompts",
   "main": "src/cli.js",
   "scripts": {
-    "test": "wdio run wdio.conf.js",
+    "test": "wdio run wdio-reminders.conf.js",
+    "test:reminders": "wdio run wdio-reminders.conf.js",
     "test:contacts": "wdio run wdio-contacts.conf.js",
     "test:safari": "wdio run wdio-safari.conf.js",
     "generate": "node src/cli.js generate",
     "verify": "node src/cli.js verify",
+    "verify:reminders": "node src/cli.js verify -c wdio-reminders.conf.js",
     "verify:contacts": "node src/cli.js verify -c wdio-contacts.conf.js",
     "verify:safari": "node src/cli.js verify -c wdio-safari.conf.js",
     "clean": "node src/cli.js clean"
