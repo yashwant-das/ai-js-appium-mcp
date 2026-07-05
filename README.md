@@ -88,7 +88,9 @@ appium-mcp-playground/
 │   ├── prompt-parser.js              # Prompt file parser
 │   └── test-generator.js             # WDIO test code generator
 ├── test-results/                     # Debug artifacts (screenshots, page source)
-├── wdio.conf.js                      # WebdriverIO configuration
+├── wdio-reminders.conf.js              # WebdriverIO configuration (Reminders app)
+├── wdio-contacts.conf.js               # Contacts app config
+├── wdio-safari.conf.js                 # Safari app config
 ├── package.json
 └── README.md
 ```

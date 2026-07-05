@@ -35,7 +35,7 @@ Use Appium MCP tools in this order:
 - Include proper timeouts
 
 ### Step 4: Verify Test
-- Run: `npx wdio run wdio.conf.js --spec tests/<scenario>.test.js`
+- Run: `npm run verify:reminders -- tests/<scenario>.test.js`
 - Confirm test passes
 - Fix any failing assertions
 
@@ -74,7 +74,7 @@ Every prompt must have:
 
 ### Opening an App
 ```javascript
-// App launched via bundleId in wdio.conf.js capabilities
+// App launched via bundleId in wdio-reminders.conf.js capabilities
 // No explicit open step needed
 ```
 
@@ -103,24 +103,38 @@ If a step fails:
 
 ```
 prompts/
-  ├── <scenario>.md          # Prompt file (kebab-case, e.g., reminders-app.md)
+  ├── <scenario>-app.md          # Prompt file (kebab-case, e.g., reminders-app.md)
   ├── templates/
   │   └── prompt-template.md
   └── archive/
 tests/
-  ├── <scenario>.test.js     # Generated test (kebab-case, e.g., reminders-app.test.js)
+  ├── <scenario>-app.test.js     # Generated test (kebab-case, e.g., reminders-app.test.js)
   └── helpers/
-      └── base-test.js       # Shared utilities
+      └── base-test.js           # Shared utilities
 docs/
-  ├── roadmap.md             # Development roadmap
-  └── notes.md               # General notes
+  ├── roadmap.md                 # Development roadmap
+  └── notes.md                   # General notes
+src/
+  ├── cli.js                     # CLI entry point
+  ├── prompt-parser.js           # Prompt file parser
+  └── test-generator.js          # WDIO test code generator
+test-results/                    # Debug artifacts (screenshots, page source)
+wdio-reminders.conf.js           # Reminders app config
+wdio-contacts.conf.js            # Contacts app config
+wdio-safari.conf.js              # Safari app config
+package.json
+└── README.md
 ```
 
 ## Commands
 
 ```bash
-npm run generate prompts/<scenario>.md    # Generate test
-npm run verify                             # Run all tests
-npm run verify tests/<scenario>.test.js    # Run specific test
-npm run clean                              # Remove generated tests
+npm run generate prompts/<scenario>-app.md    # Generate test
+npm run verify                                 # Run all Reminders tests
+npm run verify:all                             # Run all tests across all apps
+npm run verify -- tests/<scenario>-app.test.js    # Run specific test
+npm run verify:reminders -- tests/<scenario>-app.test.js  # Use reminders config
+npm run verify:contacts -- tests/<scenario>-app.test.js   # Use contacts config
+npm run verify:safari -- tests/<scenario>-app.test.js     # Use safari config
+npm run clean                                  # Remove generated tests
 ```
