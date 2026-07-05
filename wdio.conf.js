@@ -1,3 +1,7 @@
+require('dotenv').config();
+const fs = require('fs');
+const path = require('path');
+
 exports.config = {
   // ====================
   // Runner Configuration
@@ -18,7 +22,8 @@ exports.config = {
 
   mochaOpts: {
     ui: 'bdd',
-    timeout: 60000
+    timeout: 60000,
+    retries: process.env.WDIO_RETRIES ? parseInt(process.env.WDIO_RETRIES, 10) : 1
   },
 
   // ====================
@@ -81,5 +86,30 @@ exports.config = {
 
   connectionRetryCount: 0,
 
-  specLogLevels: ['error', 'warn']
+  specLogLevels: ['error', 'warn'],
+
+  // ====================
+  // Test Artifact Management
+  // ====================
+  afterTest: async function (test, context, { error }) {
+    if (error) {
+      const artifactDir = path.join(process.cwd(), 'test-results', 'failures');
+      fs.mkdirSync(artifactDir, { recursive: true });
+      const sanitizedTestName = test.title.replace(/[^a-z0-9]/gi, '_').toLowerCase();
+      const timestamp = Date.now();
+      
+      const screenshotPath = path.join(artifactDir, `${sanitizedTestName}_${timestamp}.png`);
+      await browser.saveScreenshot(screenshotPath);
+      
+      try {
+        const sourcePath = path.join(artifactDir, `${sanitizedTestName}_${timestamp}.xml`);
+        const source = await browser.getPageSource();
+        fs.writeFileSync(sourcePath, source);
+      } catch (e) {
+        console.error('Failed to capture page source:', e);
+      }
+      
+      console.log(`\n📸 Captured failure screenshot: ${screenshotPath}`);
+    }
+  }
 };

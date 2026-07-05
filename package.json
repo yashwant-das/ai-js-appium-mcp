@@ -7,7 +7,7 @@
   "scripts": {
     "verify": "wdio run wdio.conf.js",
     "test": "npm run verify",
-    "clean": "find tests -maxdepth 1 -name \"*.test.js\" -delete"
+    "clean": "find tests -maxdepth 1 -name \"*.test.js\" -delete && rm -rf test-results"
   },
   "keywords": [
     "appium",
