@@ -47,7 +47,7 @@ npm run verify tests/reminders-app.test.js
 
 # Run with a different app config
 npm run verify:reminders tests/reminders-app.test.js
-npm run verify:contacts tests/contact-app.test.js
+npm run verify:contacts tests/contacts-app.test.js
 npm run verify:safari tests/safari-app.test.js
 
 # Or use wdio directly
@@ -67,7 +67,7 @@ appium-mcp-playground/
 ├── prompts/                          # Prompt files (test scenarios)
 │   ├── reminders-app.md              # Example: Reminders app test
 │   ├── safari-app.md                 # Safari search test
-│   ├── contact-app.md                # Contacts add contact test
+│   ├── contacts-app.md               # Contacts add contact test
 │   ├── templates/
 │   │   └── prompt-template.md        # Reusable prompt template
 │   └── archive/                      # Completed prompts
@@ -76,7 +76,7 @@ appium-mcp-playground/
 │   │   └── base-test.js              # Shared test utilities
 │   ├── reminders-app.test.js         # Generated test (example)
 │   ├── safari-app.test.js            # Safari search test
-│   └── contact-app.test.js           # Contacts add contact test
+│   └── contacts-app.test.js          # Contacts add contact test
 ├── docs/                             # Project documentation
 │   ├── roadmap.md                    # Development roadmap
 │   └── notes.md                      # General notes
