@@ -4,13 +4,11 @@ A prompt-driven test framework that uses AI orchestration of Appium MCP tools to
 
 ## How It Works
 
-```
-┌─────────────┐     ┌──────────────┐     ┌─────────────┐     ┌──────────────┐
-│  Prompt     │────>│  AI Agent    │────>│  WDIO Test  │────>│  Simulator   │
-│  File       │     │  + MCP Tools │     │  File       │     │  Execution   │
-└─────────────┘     └──────────────┘     └─────────────┘     └──────────────┘
-  prompts/*.md          Orchestrates         tests/*.test.js       npm test
-                          generation
+```mermaid
+graph LR
+    A["Prompt File\nprompts/*.md"] --> B["AI Agent + MCP Tools\nOrchestrates generation"]
+    B --> C["WDIO Test File\ntests/*.test.js"]
+    C --> D["Simulator Execution\nnpm test"]
 ```
 
 1. **Write a prompt** in `prompts/<scenario>.md` describing what to test
