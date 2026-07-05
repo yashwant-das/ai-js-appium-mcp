@@ -22,7 +22,7 @@ program
 program
   .command('generate')
   .description('Generate a WDIO test from a prompt file')
-  .argument('<prompt>', 'Path to the prompt markdown file (e.g., prompts/reminders.md)')
+  .argument('<prompt>', 'Path to the prompt markdown file (e.g., prompts/reminders-app.md)')
   .option('--no-run', 'Skip automatic test execution after generation', false)
   .action(async (promptPath, options) => {
     console.log(chalk.bold('\n') + chalk.blue('  Appium MCP Test Framework'));

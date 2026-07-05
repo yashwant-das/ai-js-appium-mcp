@@ -103,14 +103,17 @@ If a step fails:
 
 ```
 prompts/
-  ├── <scenario>.md          # Prompt file
+  ├── <scenario>.md          # Prompt file (kebab-case, e.g., reminders-app.md)
   ├── templates/
   │   └── prompt-template.md
   └── archive/
 tests/
-  ├── <scenario>.test.js     # Generated test
+  ├── <scenario>.test.js     # Generated test (kebab-case, e.g., reminders-app.test.js)
   └── helpers/
       └── base-test.js       # Shared utilities
+docs/
+  ├── roadmap.md             # Development roadmap
+  └── notes.md               # General notes
 ```
 
 ## Commands

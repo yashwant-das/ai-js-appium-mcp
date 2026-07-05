@@ -42,7 +42,7 @@ A prompt-driven test framework that generates and validates WebdriverIO tests fo
 | 1.2 | Add Android support: new capabilities config, device-agnostic loader from `.wdiorc.json` / env overrides | `wdio-android.conf.js` (new), `src/device-config.js` (new) | 8 hrs |
 | 1.3 | Factor helpers into app-specific plugins — replace hardcoded `remindersLocators` with extensible `locatorSets` keyed by app name | Refactor `tests/helpers/base-test.js` | 6 hrs |
 | 1.4 | Add `verify --all` mode: aggregate pass/fail summary table and detect flaky tests across repeated runs | Update CLI `verify` command | 6 hrs |
-| 1.5 | Fix Safari test: add Safari locators to helpers; clean up duplicated inline selectors in `safari-search.test.js` | `tests/safari-search.test.js`, `tests/helpers/base-test.js` | 4 hrs |
+| 1.5 | Fix Safari test: add Safari locators to helpers; clean up duplicated inline selectors in `safari-app.test.js` | `tests/safari-app.test.js`, `tests/helpers/base-test.js` | 4 hrs |
 
 **Total: ~36 hours**
 
