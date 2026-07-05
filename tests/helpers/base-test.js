@@ -61,7 +61,8 @@ async function enterText(selector, text) {
 // Verify element is displayed
 async function expectDisplayed(selector, message) {
   const element = await waitForElement(selector);
-  await expect(element, message).to.beDisplayed();
+  const displayed = await element.isDisplayed();
+  expect(displayed, message).to.equal(true);
 }
 
 // Base setup hook - runs before each test

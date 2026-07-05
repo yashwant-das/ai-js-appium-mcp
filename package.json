@@ -9,6 +9,7 @@
     "test:reminders": "wdio run wdio-reminders.conf.js",
     "test:contacts": "wdio run wdio-contacts.conf.js",
     "test:safari": "wdio run wdio-safari.conf.js",
+    "test:unit": "node --test tests/unit/*.test.js",
     "generate": "node src/cli.js generate",
     "verify": "node src/cli.js verify",
     "verify:all": "node src/cli.js verify -c wdio-reminders.conf.js && node src/cli.js verify -c wdio-contacts.conf.js && node src/cli.js verify -c wdio-safari.conf.js",

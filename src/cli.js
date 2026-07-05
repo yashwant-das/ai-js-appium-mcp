@@ -4,9 +4,9 @@ const { Command } = require('commander');
 const chalk = require('chalk');
 const fs = require('fs');
 const path = require('path');
-const { execSync } = require('child_process');
+const { execFileSync } = require('child_process');
 
-const { parsePrompt } = require('./prompt-parser');
+const { parsePrompt, validatePrompt } = require('./prompt-parser');
 const { generateTest, getOutputPath } = require('./test-generator');
 
 const PROMPTS_DIR = path.resolve('prompts');
@@ -57,8 +57,14 @@ program
       console.log(chalk.green('  ✓ Prompt parsed successfully'));
       console.log(chalk.dim(`    Title: ${prompt.title}`));
       console.log(chalk.dim(`    App: ${prompt.app}`));
-      console.log(chalk.dim(`    Steps: ${prompt.steps.filter(s => !s.startsWith('[MCP Tool]')).length}`));
+      console.log(chalk.dim(`    Steps: ${prompt.steps.length}`));
       console.log(chalk.dim(`    MCP Tools: ${prompt.mcpTools.length}`));
+      const validationErrors = validatePrompt(prompt);
+      if (validationErrors.length > 0) {
+        console.error(chalk.red('\n  Prompt validation failed:'));
+        validationErrors.forEach(error => console.error(chalk.red(`    - ${error}`)));
+        process.exit(1);
+      }
     } catch (e) {
       console.error(chalk.red(`\n  Error parsing prompt: ${e.message}`));
       process.exit(1);
@@ -95,13 +101,11 @@ program
     console.log(chalk.dim('  ' + '-'.repeat(45)));
     console.log(chalk.yellow('\n  To execute this prompt with MCP tools, run in opencode:'));
     console.log(chalk.bold(`\n  "Use Appium MCP tools to automate the following steps:\n`));
-    prompt.steps.forEach(step => {
-      if (step.startsWith('[MCP Tool]')) {
-        console.log(chalk.cyan(`  - ${step}`));
-      } else {
-        console.log(chalk.white(`  ${prompt.steps.indexOf(step) + 1}. ${step}`));
-      }
+    prompt.steps.forEach((step, index) => {
+      console.log(chalk.white(`  ${index + 1}. ${step}`));
     });
+    console.log(chalk.cyan('\n  MCP tools requested:'));
+    prompt.mcpTools.forEach(tool => console.log(chalk.cyan(`  - ${tool}`)));
     console.log(chalk.yellow(`\n  Generate a JavaScript WDIO test and save it as ${outputPath}`));
     console.log(chalk.yellow('\n"') + chalk.dim('\n  After the AI agent generates the test, the next step will run it.\n'));
     console.log(chalk.dim('  ' + '-'.repeat(45)));
@@ -115,7 +119,7 @@ program
         const config = options.config || 'wdio-reminders.conf.js';
         console.log(chalk.dim(`  Config: ${config}`));
         console.log(chalk.dim(`  Running: wdio run ${config} --spec ${outputPath}`));
-        execSync(`npx wdio run ${config} --spec ${outputPath}`, {
+        execFileSync('npx', ['wdio', 'run', config, '--spec', outputPath], {
           stdio: 'inherit',
           cwd: process.cwd()
         });
@@ -181,8 +185,8 @@ program
     console.log(chalk.dim(`  Config: ${config}`));
 
     try {
-      const specArg = specs.map(s => `--spec ${s}`).join(' ');
-      execSync(`npx wdio run ${config} ${specArg}`, {
+      const specArgs = specs.flatMap(s => ['--spec', s]);
+      execFileSync('npx', ['wdio', 'run', config, ...specArgs], {
         stdio: 'inherit',
         cwd: process.cwd()
       });

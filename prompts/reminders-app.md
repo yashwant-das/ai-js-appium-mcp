@@ -8,6 +8,12 @@ version: 1
 
 Create a new reminder in the Reminders app on the iOS simulator and verify it appears in the list.
 
+## Entry Point
+
+- App: Reminders (bundleId: `com.apple.reminders`)
+- Starting state: Reminders app is open on the main lists screen
+- Device: iOS Simulator
+
 ## Steps:
 
 1. Open the Reminders app on the iOS simulator
@@ -24,6 +30,11 @@ Create a new reminder in the Reminders app on the iOS simulator and verify it ap
 - appium_set_value (enter text into fields)
 - appium_get_page_source (verify content)
 - appium_generate_tests (generate WDIO test file)
+
+## Exit Point
+
+- Reminders returns to the list screen
+- The newly created reminder title is visible or the reminder count increased
 
 ## Notes:
 

@@ -1,103 +1,128 @@
-# Appium MCP Test Framework
+# Appium MCP Playground
 
-A prompt-driven test framework that uses AI orchestration of Appium MCP tools to generate and verify WebdriverIO tests for mobile apps.
+This repository is a proof of concept for testing whether Appium MCP tools can help agents turn structured prompts into runnable WebdriverIO tests for iOS apps.
 
-## How It Works
+It is intentionally not a full E2E framework. The current CLI parses prompts, validates their structure, writes a conservative WDIO scaffold, and prints the MCP tool instructions an agent should use to complete or refine the test with live simulator context.
+
+## Scope
+
+This POC is meant to validate:
+
+- whether prompt files provide enough structure for an agent to automate a simulator flow;
+- whether MCP tool usage can be captured in generated WDIO tests;
+- whether generated tests can be verified with app-specific WDIO configs.
+
+This POC is not trying to provide:
+
+- a general-purpose mobile automation framework;
+- stable cross-device test infrastructure;
+- comprehensive selector discovery;
+- production-grade reporting, retries, or parallel execution.
+
+## Workflow
 
 ```mermaid
 graph LR
-    A["Prompt File\nprompts/*.md"] --> B["AI Agent + MCP Tools\nOrchestrates generation"]
-    B --> C["WDIO Test File\ntests/*.test.js"]
-    C --> D["Simulator Execution\nnpm test"]
+    A["Prompt file\nprompts/*-app.md"] --> B["CLI parser + validator"]
+    B --> C["WDIO scaffold\ntests/*-app.test.js"]
+    B --> D["Agent instructions\nAppium MCP tools"]
+    D --> E["Agent refines test\nwith simulator context"]
+    C --> F["WDIO verification\nnpm run verify:*"]
+    E --> F
 ```
 
-1. **Write a prompt** in `prompts/<scenario>.md` describing what to test
-2. **AI agent** reads the prompt, uses MCP tools to automate steps on the simulator
-3. **Test file** is generated in `tests/<scenario>.test.js`
-4. **Run tests** with `npm test` to verify on the simulator
+1. Write a prompt in `prompts/<scenario>-app.md`.
+2. Run the CLI to validate the prompt and generate a scaffold in `tests/<scenario>-app.test.js`.
+3. Use the printed Appium MCP instructions to execute the flow on the simulator and refine selectors/assertions.
+4. Run the generated test with the matching app config.
 
 ## Quick Start
-
-### Install Dependencies
 
 ```bash
 npm install
 ```
 
-### Generate a Test from a Prompt
+Generate a scaffold without running the simulator:
 
 ```bash
-npm run generate prompts/reminders-app.md
+npm run generate prompts/reminders-app.md -- --no-run
 ```
 
-This will:
-1. Read and parse the prompt file
-2. Display AI agent instructions for MCP tool execution
-3. Generate a WDIO test file in `tests/`
-4. (Optionally) Run the test on the simulator
-
-### Run Generated Tests
+Run a generated Reminders test:
 
 ```bash
-# Run all tests for Reminders app (default)
-npm run verify
-
-# Run all tests across all apps
-npm run verify:all
-
-# Run a specific test
-npm run verify -- tests/reminders-app.test.js
-
-# Run with a specific app config
 npm run verify:reminders -- tests/reminders-app.test.js
-npm run verify:contacts -- tests/contacts-app.test.js
-npm run verify:safari -- tests/safari-app.test.js
-
-# Or use wdio directly
-npm test -- --spec tests/reminders-app.test.js
 ```
 
-### Clean Generated Files
+Run all generated tests with the Reminders config:
 
 ```bash
-npm run clean
+npm run verify
 ```
+
+Run all app configs:
+
+```bash
+npm run verify:all
+```
+
+Run unit tests for the parser/generator:
+
+```bash
+npm run test:unit
+```
+
+## Simulator Setup
+
+The WDIO configs default to local Appium on `127.0.0.1:4723`. Start Appium and boot an iOS simulator before verification.
+
+Set these environment variables when the defaults do not match your machine:
+
+```bash
+export APPIUM_UDID="<simulator-udid>"
+export APPIUM_PLATFORM_VERSION="<ios-version>"
+```
+
+The default UDID in the config files is only a local POC convenience. It is not expected to work on every machine.
 
 ## Project Structure
 
-```
+```text
 appium-mcp-playground/
-├── prompts/                          # Prompt files (test scenarios)
-│   ├── reminders-app.md              # Example: Reminders app test
-│   ├── safari-app.md                 # Safari search test
-│   ├── contacts-app.md               # Contacts add contact test
-│   ├── templates/
-│   │   └── prompt-template.md        # Reusable prompt template
-│   └── archive/                      # Completed prompts
-├── tests/                            # Generated WDIO tests
+├── prompts/
+│   ├── reminders-app.md
+│   ├── safari-app.md
+│   ├── contacts-app.md
+│   └── templates/
+│       └── prompt-template.md
+├── tests/
 │   ├── helpers/
-│   │   └── base-test.js              # Shared test utilities
-│   ├── reminders-app.test.js         # Generated test (example)
-│   ├── safari-app.test.js            # Safari search test
-│   └── contacts-app.test.js          # Contacts add contact test
-├── docs/                             # Project documentation
-│   ├── roadmap.md                    # Development roadmap
-│   └── notes.md                      # General notes
-├── src/                              # Framework source
-│   ├── cli.js                        # CLI entry point
-│   ├── prompt-parser.js              # Prompt file parser
-│   └── test-generator.js             # WDIO test code generator
-├── test-results/                     # Debug artifacts (screenshots, page source)
-├── wdio-reminders.conf.js              # WebdriverIO configuration (Reminders app)
-├── wdio-contacts.conf.js               # Contacts app config
-├── wdio-safari.conf.js                 # Safari app config
+│   │   └── base-test.js
+│   └── unit/
+│       ├── prompt-parser.test.js
+│       └── test-generator.test.js
+├── docs/
+│   ├── notes.md
+│   ├── roadmap.md
+│   └── reviews/
+│       └── framework-review.md
+├── src/
+│   ├── cli.js
+│   ├── prompt-parser.js
+│   └── test-generator.js
+├── test-results/
+├── wdio-reminders.conf.js
+├── wdio-contacts.conf.js
+├── wdio-safari.conf.js
 ├── package.json
 └── README.md
 ```
 
+Generated WDIO files live at `tests/*.test.js` and are ignored by git. The committed files under `tests/unit/` are unit tests for this POC's parser and generator.
+
 ## Prompt File Format
 
-Prompts are markdown files with YAML frontmatter:
+Prompts are markdown files with YAML frontmatter and required sections:
 
 ```markdown
 ---
@@ -108,187 +133,125 @@ version: 1
 
 # Create Reminder
 
-Test creating a new reminder in the Reminders app.
+Create a new reminder in the Reminders app and verify it appears in the list.
+
+## Entry Point
+
+- App: Reminders (bundleId: `com.apple.reminders`)
+- Starting state: Reminders app is open on the main lists screen
+- Device: iOS Simulator
 
 ## Steps:
 
-1. Tap "New Reminder" button
-2. Enter the title "Test reminder" in the title field
-3. Tap "Done" to save
-4. Verify the reminder appears in the list
+1. Open the Reminders app on the iOS simulator
+2. Tap "New Reminder" button
+3. Enter the title "Test reminder" in the title field
+4. Tap "Done" to save the reminder
+5. Verify the reminder appears in the list
 
 ## MCP Tools to use:
 
-- appium_session_management (create session)
-- appium_find_element (accessibility id)
-- appium_gesture (tap)
-- appium_set_value
-- appium_generate_tests
+- appium_session_management (create/manage sessions)
+- appium_find_element (accessibility id strategy)
+- appium_gesture (action=tap for button taps)
+- appium_set_value (enter text into fields)
+- appium_get_page_source (verify content)
+- appium_generate_tests (generate WDIO test file)
 
-## Notes:
+## Exit Point
 
-Any additional context for the AI agent.
+- Reminders returns to the list screen
+- The newly created reminder title is visible or the reminder count increased
 ```
 
-### Frontmatter Fields
+Required fields and sections:
 
-| Field   | Required | Description                          |
-|---------|----------|--------------------------------------|
-| title   | Yes      | Scenario name (used for test title)  |
-| app     | No       | App name (default: reminders)        |
-| version | No       | Prompt version (default: 1)          |
-
-### Steps Format
-
-Numbered steps describing the automation sequence. The AI agent will:
-- Map each step to appropriate MCP tool calls
-- Generate corresponding WDIO test code
-
-### MCP Tools Section
-
-List the MCP tools the AI agent should use. Common tools:
-
-| Tool                      | Purpose                              |
-|---------------------------|--------------------------------------|
-| `appium_session_management` | Create/manage Appium session       |
-| `appium_find_element`       | Locate elements (accessibility id) |
-| `appium_gesture`            | Tap, scroll, swipe actions         |
-| `appium_set_value`          | Enter text into fields             |
-| `appium_get_page_source`    | Read page content for verification |
-| `appium_generate_tests`     | Generate WDIO test code            |
+| Item | Required | Purpose |
+| --- | --- | --- |
+| `title` | Yes | Scenario title used in the generated test |
+| `app` | Yes | App config family, such as `reminders`, `contacts`, or `safari` |
+| `version` | No | Prompt version for human tracking |
+| `## Entry Point` | Yes | Starting app, screen, and simulator assumptions |
+| `## Steps` | Yes | Numbered automation steps |
+| `## MCP Tools to use` | Yes | Appium MCP tools the agent should use |
+| `## Exit Point` | Yes | Success criteria and final state |
 
 ## CLI Commands
 
-### `npm run generate <prompt> [--no-run]`
-
-Generate a WDIO test from a prompt file.
+### Generate
 
 ```bash
 npm run generate prompts/reminders-app.md
-npm run generate prompts/reminders-app.md --no-run  # Generate without running
+npm run generate prompts/reminders-app.md -- --no-run
+npm run generate prompts/contacts-app.md -- --config wdio-contacts.conf.js
 ```
 
-### `npm run verify [test-file]`
+The generated filename is based on the prompt filename:
 
-Run generated tests on the simulator.
+| Prompt | Generated file |
+| --- | --- |
+| `prompts/reminders-app.md` | `tests/reminders-app.test.js` |
+| `prompts/contacts-app.md` | `tests/contacts-app.test.js` |
+| `prompts/safari-app.md` | `tests/safari-app.test.js` |
+
+### Verify
 
 ```bash
-npm run verify                              # Run all Reminders tests (uses wdio-reminders.conf.js)
-npm run verify:all                          # Run all tests across all apps
-npm run verify -- tests/foo.test.js         # Run specific test
-npm run verify:reminders -- tests/foo.test.js  # Use reminders config
-npm run verify:contacts -- tests/foo.test.js   # Use contacts config
-npm run verify:safari -- tests/foo.test.js     # Use safari config
+npm run verify
+npm run verify -- tests/reminders-app.test.js
+npm run verify:reminders -- tests/reminders-app.test.js
+npm run verify:contacts -- tests/contacts-app.test.js
+npm run verify:safari -- tests/safari-app.test.js
+npm run verify:all
 ```
 
-#### Available Configs
+Use `--spec` only when invoking WDIO directly:
 
-| Script | Config | App |
-|--------|--------|-----|
-| `npm run verify`, `npm run verify:reminders` | `wdio-reminders.conf.js` | Reminders |
-| `npm run verify:contacts` | `wdio-contacts.conf.js` | Contacts |
-| `npm run verify:safari` | `wdio-safari.conf.js` | Safari |
-| `npm run verify:all` | All configs | All apps |
+```bash
+npm test -- --spec tests/reminders-app.test.js
+```
 
-### `npm run clean`
-
-Remove all generated test files.
+### Clean Generated Files
 
 ```bash
 npm run clean
 ```
 
-## Generated Test Format
+This removes ignored generated files matching `tests/*.test.js`. It does not remove `tests/helpers/` or `tests/unit/`.
 
-Generated tests are standalone WebdriverIO v9 tests using Mocha + Chai:
+## Generated Test Scaffolds
 
-```javascript
-/**
- * Generated from: prompts/reminders-app.md
- * Generated by: appium-mcp-playground CLI
- * MCP Tools: appium_session_management, appium_find_element, ...
- */
-const { expect } = require('chai');
+Generated files are standalone WDIO Mocha tests using Chai. They include:
 
-describe('Reminders - Create Reminder', function () {
-  this.timeout(60000);
+- a prompt reference header;
+- normalized Appium MCP tool names;
+- conservative comments for steps that need live MCP/simulator context;
+- failure debug artifacts in `test-results/page-source.xml` and `test-results/debug.png` when possible.
 
-  it('should create a new reminder with title "Test reminder"', async function () {
-    // Step 1: Get the initial reminder count from page source
-    let pageSource = await browser.getPageSource();
-    const initialCountMatch = pageSource.match(/All,\s*(\d+)\s*reminders/);
-    const initialCount = initialCountMatch ? parseInt(initialCountMatch[1]) : 0;
-
-    // Step 2: Tap "New Reminder" button.
-    const newReminderBtn = await $('~New Reminder');
-    await newReminderBtn.waitForDisplayed({ timeout: 10000 });
-    await newReminderBtn.click();
-
-    // Wait for the new reminder screen to appear
-    await browser.pause(2000);
-
-    // Step 3: Enter the title "Test reminder" in the title field.
-    const titleField = await $('~Quick Entry Title Field');
-    await titleField.waitForDisplayed({ timeout: 10000 });
-    await titleField.setValue('Test reminder');
-
-    // Wait for the text to be entered
-    await browser.pause(1000);
-
-    // Step 4: Tap "Done" to save the reminder.
-    const doneBtn = await $('~Done');
-    await doneBtn.waitForDisplayed({ timeout: 10000 });
-    await doneBtn.click();
-
-    // Wait for the reminder to be saved and home screen to appear
-    await browser.pause(3000);
-
-    // Step 5: Verify the reminder count increased
-    pageSource = await browser.getPageSource();
-    const finalCountMatch = pageSource.match(/All,\s*(\d+)\s*reminders/);
-    const finalCount = finalCountMatch ? parseInt(finalCountMatch[1]) : 0;
-    
-    expect(finalCount).to.equal(initialCount + 1);
-  });
-});
-```
-
-## Writing Custom Tests
-
-You can write tests manually alongside generated ones. Use the shared helpers:
-
-```javascript
-const { expect } = require('chai');
-const { remindersLocators, tap, enterText } = require('./helpers/base-test');
-
-describe('Custom Test', function () {
-  this.timeout(60000);
-
-  it('should work', async function () {
-    await tap(remindersLocators.newReminder);
-    await enterText(remindersLocators.quickEntryTitle, 'Custom test');
-    await tap(remindersLocators.done);
-  });
-});
-```
+The generator only emits direct selectors for clearly stated accessibility ids or quoted tap/verify targets. Ambiguous prose remains a `TODO(Appium MCP)` comment so an agent does not mistake guessed selectors for verified automation.
 
 ## Troubleshooting
 
+### Prompt validation failed
+
+Check that the prompt has `title`, `app`, `Entry Point`, numbered `Steps`, `MCP Tools to use`, and `Exit Point`.
+
 ### Test fails to connect to simulator
 
-Ensure the iOS simulator is running and Appium is properly configured:
+Confirm Appium is running and the simulator UDID/version match the WDIO config:
 
 ```bash
 appium doctor
+xcrun simctl list devices
 ```
 
 ### Element not found
 
-Check the accessibility labels in the app. Use `appium_get_page_source` via the AI agent to inspect the current screen.
+Use `appium_get_page_source` through the MCP agent to inspect the current screen, then update the generated scaffold with verified accessibility ids.
 
-### Prompt parsing error
+## Review Tracker
 
-Ensure the prompt file has valid YAML frontmatter between `---` delimiters.
+Framework review findings and implementation status are tracked in `docs/reviews/framework-review.md`.
 
 ## License
 

@@ -62,7 +62,6 @@ function parseStepsFromBody(body) {
   const steps = [];
   const lines = body.split('\n');
   let inSteps = false;
-  let inTools = false;
   let inBodySteps = false;
   let bodyStepCount = 0;
 
@@ -72,7 +71,6 @@ function parseStepsFromBody(body) {
     // Check for ## Steps: heading (template format)
     if (/^##+\s*Steps/i.test(line)) {
       inSteps = true;
-      inTools = false;
       inBodySteps = false;
       continue;
     }
@@ -80,7 +78,6 @@ function parseStepsFromBody(body) {
     // Check for ## MCP Tools to use: heading (template format)
     if (/^##+\s*MCP\s+Tools/i.test(line) || /^##+\s+Tools/i.test(line)) {
       inSteps = false;
-      inTools = true;
       inBodySteps = false;
       continue;
     }
@@ -88,30 +85,20 @@ function parseStepsFromBody(body) {
     // Check for any other ## heading
     if (/^##+\s+\w/.test(line) && !/^##+\s*(Steps|MCP\s+Tools|Tools)/i.test(line)) {
       inSteps = false;
-      inTools = false;
     }
+
+    const bodyStepMatch = line.match(/^\d+\.\s+(.+)/);
 
     // Parse numbered steps in Steps section (template format)
     if (inSteps) {
-      const stepMatch = line.match(/^\d+\.\s+(.+)/);
-      if (stepMatch) {
-        steps.push(stepMatch[1].trim());
+      if (bodyStepMatch) {
+        steps.push(bodyStepMatch[1].trim());
       }
       continue;
     }
 
-    // Parse MCP tools list (template format)
-    if (inTools) {
-      const toolMatch = line.match(/^-+\s+(.+)/);
-      if (toolMatch) {
-        steps.push(`[MCP Tool]: ${toolMatch[1].trim()}`);
-      }
-      continue;
-    }
-
-    // Parse numbered steps in body (simple format)
-    // Look for the first numbered list in the body
-    const bodyStepMatch = line.match(/^\d+\.\s+(.+)/);
+    // Parse numbered steps in body (simple format). Look for the first
+    // contiguous numbered list and stop when prose or a heading resumes.
     if (bodyStepMatch) {
       if (!inBodySteps) {
         inBodySteps = true;
@@ -131,13 +118,7 @@ function parseStepsFromBody(body) {
 
     // Stop body step parsing when we hit a non-numbered, non-tool line
     if (inBodySteps && !bodyStepMatch) {
-      // Check if it's a tool list item
-      if (/^-+\s+/.test(line)) {
-        const toolMatch = line.match(/^-+\s+(.+)/);
-        if (toolMatch) {
-          steps.push(`[MCP Tool]: ${toolMatch[1].trim()}`);
-        }
-      } else if (/^Important:/.test(line) || /^Note:/.test(line) || /^##/.test(line)) {
+      if (/^Important:/.test(line) || /^Note:/.test(line) || /^##/.test(line)) {
         inBodySteps = false;
       }
     }
@@ -150,6 +131,17 @@ function parseMcpTools(body) {
   const tools = [];
   const lines = body.split('\n');
   let inTools = false;
+
+  function addToolFromText(text) {
+    const toolPattern = /`?(appium_[a-zA-Z0-9_]+)`?/g;
+    let match;
+    while ((match = toolPattern.exec(text)) !== null) {
+      const toolName = match[1];
+      if (!tools.includes(toolName)) {
+        tools.push(toolName);
+      }
+    }
+  }
 
   for (const line of lines) {
     // Template format: ## MCP Tools to use:
@@ -165,21 +157,14 @@ function parseMcpTools(body) {
     if (inTools) {
       const toolMatch = line.match(/^-+\s+(.+)/);
       if (toolMatch) {
-        tools.push(toolMatch[1].trim());
+        addToolFromText(toolMatch[1]);
       }
     }
   }
 
   // Simple format: extract tool references from "Use `tool_name`" patterns
   if (tools.length === 0) {
-    const toolPattern = /`appium_(\w+)`/g;
-    let match;
-    while ((match = toolPattern.exec(body)) !== null) {
-      const toolName = 'appium_' + match[1];
-      if (!tools.includes(toolName)) {
-        tools.push(toolName);
-      }
-    }
+    addToolFromText(body);
   }
 
   return tools;
@@ -196,6 +181,8 @@ function parsePrompt(filePath) {
   const { metadata, body } = parseYamlFrontmatter(content);
   const steps = parseStepsFromBody(body);
   const mcpTools = parseMcpTools(body);
+  const hasEntryPoint = /^##+\s*Entry\s+Point\b/im.test(body);
+  const hasExitPoint = /^##+\s*Exit\s+Point\b/im.test(body);
 
   // Extract title from frontmatter or derive from filename
   const title = metadata.title || 
@@ -209,13 +196,46 @@ function parsePrompt(filePath) {
     version: metadata.version || '1',
     steps,
     mcpTools,
+    hasEntryPoint,
+    hasExitPoint,
     sourcePath: absolutePath
   };
+}
+
+function validatePrompt(prompt) {
+  const errors = [];
+
+  if (!prompt.title || !String(prompt.title).trim()) {
+    errors.push('Missing required frontmatter field: title');
+  }
+
+  if (!prompt.app || !String(prompt.app).trim()) {
+    errors.push('Missing required frontmatter field: app');
+  }
+
+  if (!Array.isArray(prompt.steps) || prompt.steps.length === 0) {
+    errors.push('Prompt must include at least one numbered step');
+  }
+
+  if (!Array.isArray(prompt.mcpTools) || prompt.mcpTools.length === 0) {
+    errors.push('Prompt must list at least one Appium MCP tool');
+  }
+
+  if (!prompt.hasEntryPoint) {
+    errors.push('Prompt must include an Entry Point section');
+  }
+
+  if (!prompt.hasExitPoint) {
+    errors.push('Prompt must include an Exit Point section');
+  }
+
+  return errors;
 }
 
 module.exports = {
   parsePrompt,
   parseYamlFrontmatter,
   parseStepsFromBody,
-  parseMcpTools
+  parseMcpTools,
+  validatePrompt
 };

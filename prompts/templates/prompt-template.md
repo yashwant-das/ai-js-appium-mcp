@@ -8,6 +8,12 @@ version: 1
 
 Describe what this test scenario covers in one sentence.
 
+## Entry Point
+
+- App: Reminders (bundleId: `com.apple.reminders`)
+- Starting state: Describe the exact starting screen/state
+- Device: iOS Simulator
+
 ## Steps:
 
 1. Open the Reminders app on the iOS simulator
@@ -24,6 +30,11 @@ Describe what this test scenario covers in one sentence.
 - appium_set_value (enter text into fields)
 - appium_get_page_source (verify content)
 - appium_generate_tests (generate WDIO test file)
+
+## Exit Point
+
+- Describe the final screen/state
+- Describe the assertion or page source check that proves success
 
 ## Notes:
 
