@@ -46,12 +46,12 @@ npm run verify
 npm run verify:all
 
 # Run a specific test
-npm run verify tests/reminders-app.test.js
+npm run verify -- tests/reminders-app.test.js
 
 # Run with a specific app config
-npm run verify:reminders tests/reminders-app.test.js
-npm run verify:contacts tests/contacts-app.test.js
-npm run verify:safari tests/safari-app.test.js
+npm run verify:reminders -- tests/reminders-app.test.js
+npm run verify:contacts -- tests/contacts-app.test.js
+npm run verify:safari -- tests/safari-app.test.js
 
 # Or use wdio directly
 npm test -- --spec tests/reminders-app.test.js
@@ -171,12 +171,12 @@ npm run generate prompts/reminders-app.md --no-run  # Generate without running
 Run generated tests on the simulator.
 
 ```bash
-npm run verify              # Run all Reminders tests (uses wdio-reminders.conf.js)
-npm run verify:all          # Run all tests across all apps
-npm run verify tests/foo.test.js  # Run specific test
-npm run verify:reminders tests/foo.test.js  # Use reminders config
-npm run verify:contacts tests/foo.test.js   # Use contacts config
-npm run verify:safari tests/foo.test.js     # Use safari config
+npm run verify                              # Run all Reminders tests (uses wdio-reminders.conf.js)
+npm run verify:all                          # Run all tests across all apps
+npm run verify -- tests/foo.test.js         # Run specific test
+npm run verify:reminders -- tests/foo.test.js  # Use reminders config
+npm run verify:contacts -- tests/foo.test.js   # Use contacts config
+npm run verify:safari -- tests/foo.test.js     # Use safari config
 ```
 
 #### Available Configs
