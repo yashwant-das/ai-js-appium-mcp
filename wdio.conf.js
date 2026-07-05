@@ -25,9 +25,9 @@ exports.config = {
     {
       platformName: 'iOS',
       'appium:deviceName': 'iPhone Simulator',
-      'appium:platformVersion': '26.5',
+      'appium:platformVersion': process.env.APPIUM_PLATFORM_VERSION || '26.5',
       'appium:automationName': 'XCUITest',
-      'appium:udid': 'E60B3481-81CA-465F-8D62-AA87C48FAF3B',
+      'appium:udid': process.env.APPIUM_UDID || 'E60B3481-81CA-465F-8D62-AA87C48FAF3B',
       'appium:bundleId': 'com.apple.reminders',
       'appium:noReset': true,
       'appium:waitForAppScript': 'true'
