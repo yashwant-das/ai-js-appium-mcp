@@ -39,13 +39,16 @@ This will:
 ### Run Generated Tests
 
 ```bash
-# Run all tests (Reminders app)
+# Run all tests for Reminders app (default)
 npm run verify
+
+# Run all tests across all apps
+npm run verify:all
 
 # Run a specific test
 npm run verify tests/reminders-app.test.js
 
-# Run with a different app config
+# Run with a specific app config
 npm run verify:reminders tests/reminders-app.test.js
 npm run verify:contacts tests/contacts-app.test.js
 npm run verify:safari tests/safari-app.test.js
@@ -168,7 +171,8 @@ npm run generate prompts/reminders-app.md --no-run  # Generate without running
 Run generated tests on the simulator.
 
 ```bash
-npm run verify              # Run all tests (uses wdio-reminders.conf.js)
+npm run verify              # Run all Reminders tests (uses wdio-reminders.conf.js)
+npm run verify:all          # Run all tests across all apps
 npm run verify tests/foo.test.js  # Run specific test
 npm run verify:reminders tests/foo.test.js  # Use reminders config
 npm run verify:contacts tests/foo.test.js   # Use contacts config
@@ -182,6 +186,7 @@ npm run verify:safari tests/foo.test.js     # Use safari config
 | `npm run verify`, `npm run verify:reminders` | `wdio-reminders.conf.js` | Reminders |
 | `npm run verify:contacts` | `wdio-contacts.conf.js` | Contacts |
 | `npm run verify:safari` | `wdio-safari.conf.js` | Safari |
+| `npm run verify:all` | All configs | All apps |
 
 ### `npm run clean`
 

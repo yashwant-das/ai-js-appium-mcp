@@ -134,7 +134,7 @@ program
 
 program
   .command('verify')
-  .description('Run generated tests on the simulator')
+  .description('Run generated tests on the simulator (default: Reminders app)')
   .argument('[test-file]', 'Path to specific test file (default: all tests in tests/)')
   .option('-c, --config <config>', 'WDIO config file (default: wdio-reminders.conf.js)', 'wdio-reminders.conf.js')
   .action((testFile, options) => {
