@@ -190,16 +190,18 @@ Do not generate partial implementations.
 
 Execute the generated test using the project configuration.
 
+You MUST supply the target application environment variable (`APPIUM_BUNDLE_ID` or `APPIUM_APP_PACKAGE`) extracted from the prompt metadata inline with the execution command.
+
 Examples:
 
 ```bash
-npm run verify
+APPIUM_BUNDLE_ID=com.example.app npm run verify
 ```
 
 or
 
 ```bash
-npm run verify -- tests/<scenario>.test.js
+APPIUM_APP_PACKAGE=com.example.app npm run verify -- tests/<scenario>.test.js
 ```
 
 Wait for execution to complete before proceeding.
