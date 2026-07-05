@@ -1,140 +1,396 @@
-# Appium MCP Test Framework - Agent Guidelines
+# AGENTS.md
+
+# Appium MCP Playground - AI Agent Instructions
 
 ## Purpose
 
-This framework enables AI agents to generate and verify WebdriverIO tests for iOS apps using Appium MCP tools. The workflow is:
+This repository is a lightweight execution harness for AI-generated WebdriverIO mobile tests.
 
-1. **Read prompt** → Parse markdown file with automation steps
-2. **Execute MCP tools** → Automate steps on iOS simulator
-3. **Generate test** → Create standalone WDIO test file
-4. **Verify** → Run test on simulator to confirm it works
+The AI agent is responsible for the complete automation lifecycle:
 
-## Agent Workflow
+- Read and understand the user's Markdown test plan.
+- Determine the execution context from the prompt metadata.
+- Analyze the application using Appium MCP.
+- Generate a WebdriverIO test.
+- Execute the test.
+- Diagnose failures.
+- Improve the test.
+- Repeat until the test passes.
 
-When given a prompt file, follow this sequence:
+This repository intentionally does **not** include a prompt parser, custom code generator, or framework-specific DSL. The Markdown test plan is the specification and source of truth.
 
-### Step 1: Parse the Prompt
-- Read the prompt file from `prompts/` directory
-- Extract: title, app, steps, MCP tools, notes
-- Validate the prompt structure
+---
 
-### Step 2: Execute Automation Steps
-Use Appium MCP tools in this order:
-1. `appium_session_management` - Create/manage session
-2. `appium_find_element` - Locate elements (prefer accessibility id)
-3. `appium_gesture` - Tap, scroll, swipe actions
-4. `appium_set_value` - Enter text
-5. `appium_get_page_source` - Verify state
-6. `appium_generate_tests` - Generate WDIO test code
+# High-Level Workflow
 
-### Step 3: Generate Test File
-- Save to `tests/<scenario>.test.js`
-- Include prompt reference header
-- Use WDIO v9 syntax (`$`, `browser`)
-- Add chai assertions
-- Include proper timeouts
-
-### Step 4: Verify Test
-- Run: `npm run verify:reminders -- tests/<scenario>.test.js`
-- Confirm test passes
-- Fix any failing assertions
-
-## Prompt Requirements
-
-Every prompt must have:
-
-### Entry Point
-- Clear app launch method (bundleId, deep link, or app already open)
-- Specific starting screen/state
-
-### Exit Point
-- Clear verification criteria
-- How to confirm test success
-- Page source checks or element assertions
-
-### Steps
-- Numbered, sequential steps
-- Each step maps to an MCP tool call
-- Include waits where needed (2-3 seconds between major actions)
-
-### MCP Tools
-- List all tools the agent should use
-- Include purpose for each tool
-
-## Test Generation Rules
-
-1. **Selectors**: Use accessibility id (`~label`) as primary strategy
-2. **Waits**: Add `browser.pause()` between major actions (1000-3000ms)
-3. **Timeouts**: Set `this.timeout(60000)` for all tests
-4. **Assertions**: Use chai `expect()` with page source or element checks
-5. **Comments**: Each step should have a descriptive comment
-6. **Debug**: Save page source to `test-results/page-source.xml` on failure
-
-## Common Patterns
-
-### Opening an App
-```javascript
-// App launched via bundleId in wdio-reminders.conf.js capabilities
-// No explicit open step needed
+```text
+Markdown Test Plan
+        │
+        ▼
+Read Metadata
+        │
+        ▼
+Determine Execution Context
+        │
+        ▼
+Appium MCP Analysis
+        │
+        ▼
+Generate WDIO Test
+        │
+        ▼
+Execute Test
+        │
+        ▼
+Pass?
+   │          │
+ No          Yes
+   │          │
+Diagnose   Notify User
+   │
+Update Test
+   │
+Repeat
 ```
 
-### Verifying Count Change
-```javascript
-const pageSource = await browser.getPageSource();
-const match = pageSource.match(/label="([^"]*)"/);
-expect(match).to.not.be.null;
+---
+
+# Primary Objective
+
+Given a Markdown test plan, generate a complete, executable WebdriverIO test that successfully automates the requested scenario.
+
+A task is complete only when:
+
+- The generated test executes successfully.
+- All assertions pass.
+- The requested workflow is completed.
+- No runtime errors remain.
+
+---
+
+# Agent Workflow
+
+Always follow this sequence.
+
+---
+
+## Step 1 — Read the Test Plan
+
+Read the Markdown file provided by the user.
+
+Extract the scenario metadata, including:
+
+- Application
+- Platform
+- Bundle ID (iOS)
+- Package name (Android)
+- Entry point
+- Test steps
+- Expected results
+- Exit point
+
+The Markdown document is the source of truth.
+
+Do not modify or reinterpret the business requirements.
+
+---
+
+## Step 2 — Determine the Execution Context
+
+Read the project configuration (`.env` and `wdio.conf.js`).
+
+Use the prompt metadata to determine the execution context.
+
+Application-specific values such as:
+
+- `APPIUM_PLATFORM`
+- `APPIUM_BUNDLE_ID`
+- `APPIUM_APP_PACKAGE`
+- `APPIUM_APP_ACTIVITY`
+
+should be supplied during test execution without modifying the project configuration.
+
+---
+
+## Step 3 — Connect to the Device
+
+Assume the user has already:
+
+- Started the Appium server.
+- Started the iOS Simulator or Android Emulator.
+- Configured Appium MCP.
+
+Do not start Appium.
+
+Do not launch devices.
+
+Reuse an existing Appium session when appropriate. Otherwise create one using Appium MCP.
+
+Typical flow:
+
+1. `select_device`
+2. `prepare_ios_simulator` (iOS Simulator only)
+3. `appium_session_management`
+
+---
+
+## Step 4 — Analyze the Application
+
+Before generating automation, inspect the running application using Appium MCP.
+
+Useful tools include:
+
+- `generate_locators`
+- `appium_find_element`
+- `appium_get_page_source`
+- `appium_screenshot`
+- `appium_context`
+- `appium_app_lifecycle`
+
+Use these tools to understand:
+
+- UI hierarchy
+- Navigation flow
+- Stable element locators
+- Accessibility identifiers
+- Required gestures
+- Dynamic content
+
+Prefer inspecting the application over guessing selectors.
+
+---
+
+## Step 5 — Generate the Test
+
+Generate a complete standalone WebdriverIO test.
+
+Save the test under:
+
+```text
+tests/<scenario>.test.js
 ```
 
-### Navigating Back
-```javascript
-await browser.back();
-await browser.pause(1000);
-```
+Generated tests should:
 
-## Error Handling
+- use modern WebdriverIO APIs
+- be readable
+- be maintainable
+- contain meaningful assertions
+- minimize unnecessary waits
+- execute independently
+- use stable selectors
 
-If a step fails:
-1. Take screenshot: `await browser.saveScreenshot('./test-results/debug.png')`
-2. Save page source: `require('fs').writeFileSync('./test-results/page-source.xml', await browser.getPageSource())`
-3. Check element exists before interaction
-4. Increase wait times if element not found
+Generate production-quality automation.
 
-## File Structure
+Do not generate partial implementations.
 
-```
-prompts/
-  ├── <scenario>-app.md          # Prompt file (kebab-case, e.g., reminders-app.md)
-  ├── templates/
-  │   └── prompt-template.md
-  └── archive/
-tests/
-  ├── <scenario>-app.test.js     # Generated test (kebab-case, e.g., reminders-app.test.js)
-  └── helpers/
-      └── base-test.js           # Shared utilities
-docs/
-  ├── roadmap.md                 # Development roadmap
-  └── notes.md                   # General notes
-src/
-  ├── cli.js                     # CLI entry point
-  ├── prompt-parser.js           # Prompt file parser
-  └── test-generator.js          # WDIO test code generator
-test-results/                    # Debug artifacts (screenshots, page source)
-wdio-reminders.conf.js           # Reminders app config
-wdio-contacts.conf.js            # Contacts app config
-wdio-safari.conf.js              # Safari app config
-package.json
-└── README.md
-```
+---
 
-## Commands
+## Step 6 — Execute the Test
+
+Execute the generated test using the project configuration.
+
+Examples:
 
 ```bash
-npm run generate prompts/<scenario>-app.md    # Generate test
-npm run verify                                 # Run all Reminders tests
-npm run verify:all                             # Run all tests across all apps
-npm run verify -- tests/<scenario>-app.test.js    # Run specific test
-npm run verify:reminders -- tests/<scenario>-app.test.js  # Use reminders config
-npm run verify:contacts -- tests/<scenario>-app.test.js   # Use contacts config
-npm run verify:safari -- tests/<scenario>-app.test.js     # Use safari config
-npm run clean                                  # Remove generated tests
+npm run verify
 ```
+
+or
+
+```bash
+npm run verify -- tests/<scenario>.test.js
+```
+
+Wait for execution to complete before proceeding.
+
+---
+
+## Step 7 — Diagnose Failures
+
+If execution fails, investigate using:
+
+- execution logs
+- screenshots
+- page source
+- generated locators
+- Appium MCP inspection tools
+
+Common issues include:
+
+- incorrect locator
+- timing issue
+- unexpected application state
+- missing scroll
+- alert dialog
+- invalid assertion
+
+Inspect first.
+
+Avoid guessing.
+
+---
+
+## Step 8 — Improve the Test
+
+Update only what is necessary.
+
+Examples include:
+
+- improving selectors
+- scrolling before interaction
+- waiting for visibility
+- dismissing alerts
+- refining assertions
+
+Keep the generated automation simple and maintainable.
+
+---
+
+## Step 9 — Repeat
+
+Execute the updated test again.
+
+Continue until:
+
+- execution succeeds
+- all assertions pass
+
+Do not stop after the first failure.
+
+---
+
+## Step 10 — Notify the User
+
+Once the test passes, inform the user that:
+
+- the test was generated
+- execution completed successfully
+- all assertions passed
+
+---
+
+# Appium MCP Usage Guidelines
+
+Appium MCP is the automation interface used to inspect and interact with the running application.
+
+Use it to:
+
+- create or attach to Appium sessions
+- inspect the UI hierarchy
+- discover stable locators
+- navigate the application
+- perform gestures
+- capture screenshots
+- inspect page source
+
+Choose the Appium MCP tools that best fit the scenario. Prefer reliable and stable interactions over brittle implementations.
+
+---
+
+# Recommended Tool Usage
+
+## Session Management
+
+- `select_device`
+- `prepare_ios_simulator`
+- `appium_session_management`
+
+## Application Analysis
+
+- `generate_locators`
+- `appium_find_element`
+- `appium_get_page_source`
+- `appium_screenshot`
+
+## Navigation
+
+- `appium_gesture`
+- `appium_set_value`
+- `appium_alert`
+- `appium_context`
+
+## Validation
+
+- `appium_get_text`
+- `appium_find_element`
+
+---
+
+# Locator Strategy
+
+Prefer stable locators using the following priority:
+
+1. Accessibility ID
+2. Resource ID
+3. Native platform locators
+4. XPath (last resort)
+
+Avoid brittle XPath whenever possible.
+
+---
+
+# Test Generation Principles
+
+Generated tests should be:
+
+- deterministic
+- readable
+- maintainable
+- self-contained
+- production quality
+
+Avoid:
+
+- unnecessary sleeps
+- duplicated code
+- fragile selectors
+- excessive XPath
+- hardcoded coordinates
+
+---
+
+# Failure Recovery
+
+When a test fails:
+
+1. Inspect the application.
+2. Determine the root cause.
+3. Update the generated test.
+4. Execute the test again.
+
+Repeat until the test passes successfully.
+
+---
+
+# Repository Responsibilities
+
+This repository provides:
+
+- Markdown test scenarios
+- Generic WebdriverIO configuration
+- Execution harness
+- Generated test location
+- Debug artifacts
+
+This repository does **not** provide:
+
+- prompt parsing
+- custom code generation
+- Appium server management
+- simulator management
+- emulator management
+- device provisioning
+
+Those responsibilities remain with the user and the AI agent.
+
+---
+
+# Success Criteria
+
+A task is complete only when:
+
+- The Markdown scenario has been fully automated.
+- The generated WebdriverIO test passes.
+- No failing assertions remain.
+- The user has been informed of successful execution.
