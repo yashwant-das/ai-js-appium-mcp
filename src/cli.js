@@ -24,6 +24,7 @@ program
   .description('Generate a WDIO test from a prompt file')
   .argument('<prompt>', 'Path to the prompt markdown file (e.g., prompts/reminders-app.md)')
   .option('--no-run', 'Skip automatic test execution after generation', false)
+  .option('-c, --config <config>', 'WDIO config file for auto-run (default: wdio.conf.js)', 'wdio.conf.js')
   .action(async (promptPath, options) => {
     console.log(chalk.bold('\n') + chalk.blue('  Appium MCP Test Framework'));
     console.log(chalk.dim('  ' + '='.repeat(45)) + '\n');
@@ -111,19 +112,21 @@ program
       console.log(chalk.dim('  ' + '-'.repeat(45)));
       
       try {
-        console.log(chalk.dim(`  Running: wdio run wdio.conf.js --spec ${outputPath}`));
-        execSync(`npx wdio run wdio.conf.js --spec ${outputPath}`, {
+        const config = options.config || 'wdio.conf.js';
+        console.log(chalk.dim(`  Config: ${config}`));
+        console.log(chalk.dim(`  Running: wdio run ${config} --spec ${outputPath}`));
+        execSync(`npx wdio run ${config} --spec ${outputPath}`, {
           stdio: 'inherit',
           cwd: process.cwd()
         });
         console.log(chalk.green('\n  ✓ Test completed successfully!'));
       } catch (e) {
         console.log(chalk.yellow('\n  ⚠ Test execution skipped (use --run flag to enable)'));
-        console.log(chalk.dim('  To run manually: npm test -- --spec ' + outputPath));
+        console.log(chalk.dim('  To run manually: npm run verify -- --spec ' + outputPath));
       }
     } else {
       console.log(chalk.cyan('\n  Step 4: Test generation complete (skipped execution)'));
-      console.log(chalk.dim('  To run the test: npm test -- --spec ' + outputPath));
+      console.log(chalk.dim('  To run the test: npm run verify -- --spec ' + outputPath));
     }
 
     console.log(chalk.green('\n  Done!\n'));
@@ -133,11 +136,13 @@ program
   .command('verify')
   .description('Run generated tests on the simulator')
   .argument('[test-file]', 'Path to specific test file (default: all tests in tests/)')
-  .action((testFile) => {
+  .option('-c, --config <config>', 'WDIO config file (default: wdio.conf.js)', 'wdio.conf.js')
+  .action((testFile, options) => {
     console.log(chalk.bold('\n') + chalk.blue('  Appium MCP Test Framework'));
     console.log(chalk.dim('  ' + '='.repeat(45)) + '\n');
 
     const specs = [];
+    const config = options.config || 'wdio.conf.js';
 
     if (testFile) {
       // Run specific test
@@ -173,10 +178,11 @@ program
 
     console.log(chalk.cyan('\n  Starting test execution on simulator...\n'));
     console.log(chalk.dim('  ' + '-'.repeat(45)));
+    console.log(chalk.dim(`  Config: ${config}`));
 
     try {
       const specArg = specs.map(s => `--spec ${s}`).join(' ');
-      execSync(`npx wdio run wdio.conf.js ${specArg}`, {
+      execSync(`npx wdio run ${config} ${specArg}`, {
         stdio: 'inherit',
         cwd: process.cwd()
       });
