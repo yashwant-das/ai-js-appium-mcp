@@ -97,10 +97,10 @@ exports.config = {
       fs.mkdirSync(artifactDir, { recursive: true });
       const sanitizedTestName = test.title.replace(/[^a-z0-9]/gi, '_').toLowerCase();
       const timestamp = Date.now();
-      
+
       const screenshotPath = path.join(artifactDir, `${sanitizedTestName}_${timestamp}.png`);
       await browser.saveScreenshot(screenshotPath);
-      
+
       try {
         const sourcePath = path.join(artifactDir, `${sanitizedTestName}_${timestamp}.xml`);
         const source = await browser.getPageSource();
@@ -108,7 +108,7 @@ exports.config = {
       } catch (e) {
         console.error('Failed to capture page source:', e);
       }
-      
+
       console.log(`\n📸 Captured failure screenshot: ${screenshotPath}`);
     }
   }
