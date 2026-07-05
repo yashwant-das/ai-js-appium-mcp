@@ -37,6 +37,7 @@ appium-*.log
 coverage/
 .nyc_output/
 test-results/
+screenshots/
 tests/*.test.js
 !tests/helpers/
 
