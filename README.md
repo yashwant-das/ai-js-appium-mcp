@@ -223,6 +223,37 @@ npm run clean
 
 ---
 
+# Quality Gates
+
+The project enforces code quality through ESLint and pre-commit hooks.
+
+## Linting
+
+Run ESLint across the project:
+
+```bash
+npm run lint
+```
+
+Auto-fix fixable issues:
+
+```bash
+npm run lint:fix
+```
+
+## Enforced Rules
+
+- `wdio/await-expect` — All Chai assertions must be awaited
+- `wdio/no-debug` — No `browser.debug()` in tests
+- `wdio/no-pause` — No `browser.pause()` (use explicit waits instead)
+- `chai-friendly/no-unused-expressions` — Chai assertions must use `expect()` style
+
+## Pre-commit Hook
+
+A Husky pre-commit hook runs lint-staged on every commit, auto-fixing ESLint issues on staged files. No need to manually lint before committing.
+
+---
+
 # Design Principles
 
 This project intentionally remains lightweight.
@@ -235,6 +266,13 @@ This project intentionally remains lightweight.
 - Debug artifacts
 - AI-first workflow
 - Appium MCP integration
+
+## Included
+
+- ESLint configuration with WDIO and Chai plugins
+- Husky pre-commit hooks with lint-staged
+- `.husky/pre-commit` — auto-lints staged files
+- `eslint.config.js` — flat config with WDIO-specific rules
 
 ## Not Included
 
