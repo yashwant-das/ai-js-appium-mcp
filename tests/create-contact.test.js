@@ -23,9 +23,8 @@ describe('Create Contact', function () {
     await lastNameField.addValue('Doe');
 
     // Step 4: Scroll down to find "Add Phone" button, then tap it
-    await $('~Insert add phone').waitForDisplayed({ timeout: 10000 });
-    await browser.pause(500);
     const addPhoneButton = await $('~Insert add phone');
+    await addPhoneButton.waitForDisplayed({ timeout: 10000 });
     await addPhoneButton.click();
 
     // Enter phone number into the mobile field
@@ -35,8 +34,8 @@ describe('Create Contact', function () {
     await phoneField.addValue('9876543210');
 
     // Step 5: Scroll down to find "Add Email" button, then tap it
-    await browser.pause(500);
     const addEmailButton = await $('~Insert add email');
+    await addEmailButton.waitForDisplayed({ timeout: 10000 });
     await addEmailButton.click();
 
     // Enter email address into the home field
