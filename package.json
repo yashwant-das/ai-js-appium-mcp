@@ -1,7 +1,7 @@
 {
-  "name": "appium-mcp-playground",
+  "name": "ai-js-appium-mcp",
   "version": "1.0.0",
-  "description": "A lightweight WebdriverIO execution harness for AI-generated mobile UI tests using Appium MCP.",
+  "description": "WebdriverIO project where AI coding agents write and run mobile UI tests through Appium MCP",
   "type": "commonjs",
   "license": "ISC",
   "scripts": {

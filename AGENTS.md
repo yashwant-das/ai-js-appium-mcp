@@ -1,10 +1,10 @@
 # AGENTS.md
 
-# Appium MCP Playground - AI Agent Instructions
+# ai-js-appium-mcp - AI Agent Instructions
 
 ## Purpose
 
-This repository is a lightweight execution harness for AI-generated WebdriverIO mobile tests.
+This repository is an execution harness for AI-generated WebdriverIO mobile tests.
 
 The AI agent is responsible for the complete automation lifecycle:
 

@@ -1,4 +1,4 @@
-# Future Updates — Appium MCP Playground
+# Future Updates — ai-js-appium-mcp
 
 ## Priority 1 — Fix Immediately
 

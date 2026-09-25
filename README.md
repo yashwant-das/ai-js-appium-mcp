@@ -1,85 +1,43 @@
-# Appium MCP Playground
+# ai-js-appium-mcp
 
-A lightweight WebdriverIO project that enables AI coding agents to generate, execute, validate, and refine mobile UI tests using **Appium MCP**.
+A WebdriverIO project where an AI coding agent writes and runs mobile UI tests through [Appium MCP](https://github.com/appium/appium-mcp).
 
-Unlike traditional automation frameworks, this project does **not** include a custom test generator, prompt parser, or framework-specific DSL. Instead, the AI agent uses Appium MCP to inspect the application, author WebdriverIO tests, execute them, diagnose failures, and iterate until the tests pass.
+You describe a scenario in Markdown. The agent uses Appium MCP to inspect the running app, find stable locators, write a WebdriverIO test, run it, and fix it until it passes. There is no test generator, prompt parser or DSL in this repo: the Markdown prompt is the specification, and `AGENTS.md` tells the agent how to work.
 
----
-
-# Objective
-
-Provide a minimal, AI-first WebdriverIO project that enables coding agents to generate, execute, validate, and refine mobile UI tests using Appium MCP.
-
----
-
-# Source of Truth
-
-The Markdown prompt is the source of truth for every automation scenario.
-
-Each prompt defines:
-
-- Application under test
-- Platform
-- Bundle ID (iOS) or Package Name (Android)
-- Business objective
-- Entry point
-- Test steps
-- Expected results
-- Exit point
-
-The AI agent reads this metadata, determines the execution context, uses Appium MCP to inspect the application, generates a WebdriverIO test, executes it, and iterates until the scenario passes.
-
----
-
-# Expected Workflow
-
-```mermaid
-graph TD
-    A["1. Write a Markdown test plan"] --> B["2. Configure Appium MCP in your AI Agent or IDE"]
-    B --> C["3. Start Appium Server"]
-    C --> D["4. Start iOS Simulator or Android Emulator"]
-    D --> E["5. Prompt the AI agent with the Markdown test plan"]
-    E --> F["6. Agent reads the prompt metadata and generic WDIO configuration"]
-    F --> G["7. Agent uses Appium MCP to inspect the application and generate a WebdriverIO test"]
-    G --> H["8. Execute the generated test"]
-    H --> I{"Did the test pass?"}
-    I -- No --> J["9. Analyze failures, update the test, and rerun"]
-    J --> H
-    I -- Yes --> K["10. Notify the user"]
-```
+`tests/create-contact.test.js` is an example of a test an agent wrote from `prompts/create-contact.md`.
 
 ## Workflow
 
-1. Write your test scenario as a Markdown document (for example `prompts/create-reminder.md`).
-2. Configure Appium MCP in your preferred AI agent or IDE.
-3. Start the Appium Server.
-4. Launch the iOS Simulator or Android Emulator.
-5. Prompt the AI agent using the Markdown test plan.
-6. The AI agent reads the prompt metadata together with the generic `wdio.conf.js` configuration.
-7. Using Appium MCP, the agent inspects the application, discovers stable locators, and generates a standalone WebdriverIO test.
-8. WebdriverIO executes the generated test.
-9. If execution fails, the AI agent diagnoses the failure, updates the generated test, and reruns it until all assertions pass.
-10. Once successful, the AI agent notifies the user.
+```mermaid
+graph TD
+    A["1. Write a Markdown test plan"] --> B["2. Configure Appium MCP in your AI agent or IDE"]
+    B --> C["3. Start Appium Server"]
+    C --> D["4. Start iOS Simulator or Android Emulator"]
+    D --> E["5. Prompt the agent with the test plan"]
+    E --> F["6. Agent reads the prompt metadata and wdio.conf.js"]
+    F --> G["7. Agent inspects the app with Appium MCP and writes a WebdriverIO test"]
+    G --> H["8. Run the test"]
+    H --> I{"Did the test pass?"}
+    I -- No --> J["9. Agent analyses the failure, updates the test, and reruns"]
+    J --> H
+    I -- Yes --> K["10. Agent reports back"]
+```
 
----
+Each prompt in `prompts/` defines the app, platform, bundle ID (iOS) or package name (Android), objective, entry point, steps, expected results and exit point. Start new ones from `prompts/templates/prompt-template.md`.
 
-# Prerequisites
-
-Before using this project, ensure the following are installed and configured:
+## Prerequisites
 
 - Node.js 22+
-- WebdriverIO
-- Appium Server
-- Appium MCP
-- Android SDK (Android testing)
-- Xcode and iOS Simulator (iOS testing)
-- An AI coding agent with MCP support (for example OpenCode, Antigravity IDE, Claude Code, Cursor, or Gemini CLI)
+- Appium Server with the XCUITest or UiAutomator2 driver
+- [Appium MCP](https://github.com/appium/appium-mcp)
+- Xcode and an iOS Simulator, or the Android SDK and an emulator
+- An AI coding agent with MCP support, such as Claude Code, Cursor, OpenCode, Gemini CLI or Antigravity
 
----
+## Appium MCP configuration
 
-# Verified Appium MCP Configurations
+These configurations were tested. Replace the paths with your own.
 
-## Antigravity IDE
+**Antigravity**
 
 ```json
 {
@@ -88,10 +46,10 @@ Before using this project, ensure the following are installed and configured:
       "command": "node",
       "args": [
         "-e",
-        "console.log = console.error; console.info = console.error; console.debug = console.error; import('/Users/yash/.config/opencode/node_modules/appium-mcp/dist/index.js')"
+        "console.log = console.error; console.info = console.error; console.debug = console.error; import('<path-to>/node_modules/appium-mcp/dist/index.js')"
       ],
       "env": {
-        "ANDROID_HOME": "/Users/yash/Library/Android/sdk",
+        "ANDROID_HOME": "<path-to>/Android/sdk",
         "APPIUM_MCP_DOCS_ENABLED": "true"
       }
     }
@@ -99,21 +57,20 @@ Before using this project, ensure the following are installed and configured:
 }
 ```
 
-## OpenCode
+The `console.*` redirect keeps log output off stdout, which MCP uses for its protocol.
+
+**OpenCode**
 
 ```json
 {
   "mcp": {
     "appium-mcp": {
       "type": "local",
-      "command": [
-        "node",
-        "/Users/yash/.config/opencode/node_modules/appium-mcp/dist/index.js"
-      ],
+      "command": ["node", "<path-to>/node_modules/appium-mcp/dist/index.js"],
       "enabled": true,
       "timeout": 60000,
       "environment": {
-        "ANDROID_HOME": "/Users/yash/Library/Android/sdk",
+        "ANDROID_HOME": "<path-to>/Android/sdk",
         "APPIUM_MCP_DOCS_ENABLED": "true"
       }
     }
@@ -121,191 +78,57 @@ Before using this project, ensure the following are installed and configured:
 }
 ```
 
----
-
-# Project Structure
-
-```text
-appium-mcp-playground/
-│
-├── prompts/
-│   ├── create-contact.md
-│   ├── create-reminder.md
-│   ├── search-safari.md
-│   └── prompt-template.md
-│
-├── tests/
-│   ├── helpers/
-│   └── *.test.js
-│
-├── test-results/
-│
-├── docs/
-│
-├── .env.example
-├── .gitignore
-├── AGENTS.md
-├── package.json
-├── README.md
-└── wdio.conf.js
-```
-
----
-
-# Configuration
-
-Copy the sample environment file.
+## Setup
 
 ```bash
+npm install
 cp .env.example .env
 ```
 
-Update the values to match your local environment.
+`.env` holds the defaults: Appium host and port, platform, device, and app. The agent normally supplies the app values (`APPIUM_PLATFORM`, `APPIUM_BUNDLE_ID`, `APPIUM_APP_PACKAGE`, `APPIUM_APP_ACTIVITY`) from the prompt when it runs a scenario.
 
-The values defined in `.env` act as defaults.
-
-Application-specific values such as:
-
-- `APPIUM_PLATFORM`
-- `APPIUM_BUNDLE_ID`
-- `APPIUM_APP_PACKAGE`
-- `APPIUM_APP_ACTIVITY`
-
-are typically derived by the AI agent from the Markdown prompt and supplied at runtime when executing a scenario.
-
----
-
-# Running Tests
-
-The project uses a single generic `wdio.conf.js` configuration.
-
-## Run all generated tests
+## Running tests
 
 ```bash
-npm run verify
+npm run verify                                         # all tests
+npm run verify -- tests/create-contact.test.js         # one test
+APPIUM_BUNDLE_ID=com.apple.reminders npm run verify    # a different app
 ```
 
-## Run a specific generated test
+`npm run clean` deletes the generated tests and `test-results/`, and keeps `tests/helpers/`.
 
-```bash
-npm run verify -- tests/create-reminder.test.js
+## Quality checks
+
+`npm run lint` runs ESLint (`npm run lint:fix` to fix). A Husky pre-commit hook runs lint-staged on staged files. The rules that matter most for generated tests:
+
+- `wdio/await-expect`: every assertion is awaited
+- `wdio/no-debug` and `wdio/no-pause`: no `browser.debug()` or `browser.pause()`; use explicit waits
+- `chai-friendly/no-unused-expressions`: assertions use `expect()`
+
+## Structure
+
+```text
+├── AGENTS.md            # Workflow and rules for the AI agent
+├── prompts/             # Markdown test plans
+│   └── templates/       # Template for new prompts
+├── tests/               # Agent-written WebdriverIO tests
+│   └── helpers/
+├── docs/
+├── wdio.conf.js         # One generic config, driven by environment variables
+└── eslint.config.js
 ```
 
-## Override the target application
+## What this repo does and doesn't do
 
-### Reminders
+| Appium MCP | This repo |
+|---|---|
+| Creates and manages Appium sessions | Generic WebdriverIO configuration |
+| Finds UI elements and suggests locators | Markdown scenarios and the agent workflow in `AGENTS.md` |
+| Reads page source and takes screenshots | Stores and runs the agent-written tests |
+| Interacts with the app | Lint rules for generated code |
 
-```bash
-APPIUM_BUNDLE_ID=com.apple.reminders npm run verify
-```
+Not included: a prompt parser, code generator or DSL, and management of the Appium server, simulators, emulators or devices.
 
-### Contacts
-
-```bash
-APPIUM_BUNDLE_ID=com.apple.MobileAddressBook npm run verify
-```
-
-### Safari
-
-```bash
-APPIUM_BUNDLE_ID=com.apple.mobilesafari npm run verify
-```
-
----
-
-# Cleaning Generated Tests
-
-Remove all generated tests while preserving helper utilities.
-
-```bash
-npm run clean
-```
-
----
-
-# Quality Gates
-
-The project enforces code quality through ESLint and pre-commit hooks.
-
-## Linting
-
-Run ESLint across the project:
-
-```bash
-npm run lint
-```
-
-Auto-fix fixable issues:
-
-```bash
-npm run lint:fix
-```
-
-## Enforced Rules
-
-- `wdio/await-expect` — All Chai assertions must be awaited
-- `wdio/no-debug` — No `browser.debug()` in tests
-- `wdio/no-pause` — No `browser.pause()` (use explicit waits instead)
-- `chai-friendly/no-unused-expressions` — Chai assertions must use `expect()` style
-
-## Pre-commit Hook
-
-A Husky pre-commit hook runs lint-staged on every commit, auto-fixing ESLint issues on staged files. No need to manually lint before committing.
-
----
-
-# Design Principles
-
-This project intentionally remains lightweight.
-
-## Included
-
-- Markdown test scenarios
-- Generic WebdriverIO configuration
-- AI-generated WebdriverIO tests
-- Debug artifacts
-- AI-first workflow
-- Appium MCP integration
-
-## Included
-
-- ESLint configuration with WDIO and Chai plugins
-- Husky pre-commit hooks with lint-staged
-- `.husky/pre-commit` — auto-lints staged files
-- `eslint.config.js` — flat config with WDIO-specific rules
-
-## Not Included
-
-- Prompt parser
-- Custom code generation engine
-- Framework-specific DSL
-- Appium Server management
-- Simulator or Emulator management
-- Device provisioning
-
-The Markdown prompt is the specification.
-
-The AI agent is responsible for interpreting it and generating the automation.
-
----
-
-# Relationship with Appium MCP
-
-This project complements Appium MCP rather than replacing it.
-
-| Appium MCP | Playground |
-|------------|------------|
-| Creates and manages Appium sessions | Provides generic WebdriverIO configuration |
-| Discovers UI elements | Stores AI-generated WebdriverIO tests |
-| Generates reliable locators | Executes generated tests |
-| Captures screenshots | Stores execution artifacts |
-| Reads page source | Provides reusable Markdown scenarios |
-| Interacts with the application | Defines the AI workflow through `AGENTS.md` |
-
-Together they provide an AI-native workflow for mobile UI automation.
-
----
-
-# License
+## License
 
 ISC
