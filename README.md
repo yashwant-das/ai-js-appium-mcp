@@ -129,6 +129,12 @@ APPIUM_BUNDLE_ID=com.apple.reminders npm run verify    # a different app
 
 Not included: a prompt parser, code generator or DSL, and management of the Appium server, simulators, emulators or devices.
 
+## Known security alerts
+
+Dependabot reports two high-severity alerts for `extract-zip` 2.0.1 ([GHSA-jmr9-qjv8-65gv](https://github.com/advisories/GHSA-jmr9-qjv8-65gv), [GHSA-7pqw-9j4j-h8q3](https://github.com/advisories/GHSA-7pqw-9j4j-h8q3)): a crafted zip file with symlink entries can write files outside the folder it's extracted to. No patched release of `extract-zip` exists.
+
+It comes in through WebdriverIO (`@wdio/cli` → `@wdio/utils` → `@puppeteer/browsers`), which uses it to unpack browser and driver downloads. This project doesn't pass it any other archives. The alerts stay open until WebdriverIO or `@puppeteer/browsers` replaces or patches it; remove this note then.
+
 ## License
 
 ISC
