@@ -137,4 +137,4 @@ It comes in through WebdriverIO (`@wdio/cli` → `@wdio/utils` → `@puppeteer/b
 
 ## License
 
-ISC
+MIT. See [LICENSE](LICENSE).

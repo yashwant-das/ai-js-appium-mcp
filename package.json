@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "WebdriverIO project where AI coding agents write and run mobile UI tests through Appium MCP",
   "type": "commonjs",
-  "license": "ISC",
+  "license": "MIT",
   "scripts": {
     "verify": "wdio run wdio.conf.js",
     "test": "npm run verify",
