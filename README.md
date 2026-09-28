@@ -72,17 +72,6 @@ npm run clean                                          # delete generated tests 
 | Assertions | Chai and WebdriverIO expect | 6, 9 | Readable assertions with built-in waits |
 | Quality gates | ESLint with eslint-plugin-wdio, Husky, lint-staged | 10, 9, 17 | Catches unawaited assertions and hard waits in generated code |
 
-## What this repo does and doesn't do
-
-| Appium MCP | This repo |
-|---|---|
-| Creates and manages Appium sessions | Generic WebdriverIO configuration |
-| Finds UI elements and suggests locators | Markdown scenarios and the agent workflow in `AGENTS.md` |
-| Reads page source and takes screenshots | Stores and runs the agent-written tests |
-| Interacts with the app | Lint rules for generated code |
-
-Not included: a prompt parser, code generator or DSL, and management of the Appium server, simulators, emulators or devices.
-
 ## Project structure
 
 ```text
@@ -95,6 +84,17 @@ Not included: a prompt parser, code generator or DSL, and management of the Appi
 ├── wdio.conf.js         # One generic config, driven by environment variables
 └── eslint.config.js
 ```
+
+## What this repo does and doesn't do
+
+| Appium MCP | This repo |
+|---|---|
+| Creates and manages Appium sessions | Generic WebdriverIO configuration |
+| Finds UI elements and suggests locators | Markdown scenarios and the agent workflow in `AGENTS.md` |
+| Reads page source and takes screenshots | Stores and runs the agent-written tests |
+| Interacts with the app | Lint rules for generated code |
+
+Not included: a prompt parser, code generator or DSL, and management of the Appium server, simulators, emulators or devices.
 
 ## Known security alerts
 
