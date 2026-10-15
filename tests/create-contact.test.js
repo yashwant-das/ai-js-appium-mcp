@@ -1,6 +1,28 @@
 const { browser } = require('@wdio/globals');
 
 describe('Create Contact', function () {
+  // noReset keeps the app state between runs, so a previous run can leave the
+  // New Contact sheet (and the keyboard intro) open. Start from the contact list.
+  beforeEach(async function () {
+    const bundleId = process.env.APPIUM_BUNDLE_ID;
+    await browser.execute('mobile: terminateApp', { bundleId });
+    await browser.execute('mobile: activateApp', { bundleId });
+
+    const keyboardIntro = await $('~Continue');
+    if (await keyboardIntro.waitForDisplayed({ timeout: 3000 }).catch(() => false)) {
+      await keyboardIntro.click();
+    }
+
+    const closeButton = await $('~close');
+    if (await closeButton.isDisplayed().catch(() => false)) {
+      await closeButton.click();
+      const discard = await $('~Discard Changes');
+      if (await discard.waitForDisplayed({ timeout: 3000 }).catch(() => false)) {
+        await discard.click();
+      }
+    }
+  });
+
   it('should create a new contact John Doe with phone and email', async function () {
     // Step 1: Tap the Add button to create a new contact
     const addButton = await $('~Add');
@@ -8,7 +30,7 @@ describe('Create Contact', function () {
     await addButton.click();
 
     // Wait for the New Contact form to appear
-    await $('~New Contact').waitForDisplayed({ timeout: 10000 });
+    await $("-ios predicate string:type == 'XCUIElementTypeNavigationBar' AND name == 'New Contact'").waitForDisplayed({ timeout: 10000 });
 
     // Step 2: Enter first name
     const firstNameField = await $('~First name');
@@ -28,7 +50,7 @@ describe('Create Contact', function () {
     await addPhoneButton.click();
 
     // Enter phone number into the mobile field
-    const phoneField = await $('~mobile');
+    const phoneField = await $("-ios predicate string:type == 'XCUIElementTypeTextField' AND name == 'mobile'");
     await phoneField.waitForDisplayed({ timeout: 5000 });
     await phoneField.clearValue();
     await phoneField.addValue('9876543210');
@@ -39,7 +61,7 @@ describe('Create Contact', function () {
     await addEmailButton.click();
 
     // Enter email address into the home field
-    const emailField = await $('~home');
+    const emailField = await $("-ios predicate string:type == 'XCUIElementTypeTextField' AND name == 'home'");
     await emailField.waitForDisplayed({ timeout: 5000 });
     await emailField.clearValue();
     await emailField.addValue('john.doe@example.com');
@@ -50,7 +72,9 @@ describe('Create Contact', function () {
     await doneButton.click();
 
     // Wait for the contact detail page to show John Doe
-    await $('~John Doe').waitForDisplayed({ timeout: 10000 });
+    const contactHeader = await $('~ContactCardHeaderView');
+    await contactHeader.waitForDisplayed({ timeout: 10000 });
+    expect(await contactHeader.getAttribute('label')).toBe('John Doe');
 
     // Step 7: Go back to contacts list
     const backButton = await $('~BackButton');
@@ -58,7 +82,12 @@ describe('Create Contact', function () {
     await backButton.click();
 
     // Step 8: Verify John Doe appears in the contacts list
-    await $('~John Doe').waitForDisplayed({ timeout: 10000 });
+    // (earlier runs may have saved the same contact, so match one or more cells)
+    const johnDoeCells = $$("-ios predicate string:type == 'XCUIElementTypeCell' AND name == 'John Doe'");
+    await browser.waitUntil(async () => (await johnDoeCells.length) > 0, {
+      timeout: 10000,
+      timeoutMsg: 'John Doe was not found in the contacts list'
+    });
 
     // Take final screenshot
     await browser.saveScreenshot('./test-results/create_contact_success.png');
