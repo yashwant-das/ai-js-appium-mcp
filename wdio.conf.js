@@ -8,6 +8,8 @@ exports.config = {
   // ====================
   runner: 'local',
 
+  specs: ['./tests/**/*.test.js'],
+
   execTimeout: 120000,
   commandTimeout: 120000,
   heartbeatTimeout: 120000,
