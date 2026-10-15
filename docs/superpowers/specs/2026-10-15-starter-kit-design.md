@@ -244,3 +244,18 @@ Prompts drop `bundleId` from front matter (the app comes from `app.config.js`). 
 - An Android demo app or Android test pass.
 - Multi-app support in one project.
 - Parallel test execution (`maxInstances` stays 1; the tests share one simulator).
+
+## 13. Changes made during planning and implementation
+
+- `registerCleanup(name, fn)` and `runCleanups()` live in `support/cleanup.js`; `support/testData.js` holds only data factories, so both are unit-testable without a device.
+- `deleteContactByName(fullName)` and `createContact(contact)` live in `screens/flows.js` (multi-screen actions shared by tests and cleanup), not in `support/testData.js`.
+- App-specific leftover handling (`dismissLeftovers`, `resetToHome`) lives in `support/appState.js`, used by both the `beforeTest` hook and cleanup; `support/hooks.js` only wires hooks.
+- Pure modules and the raw-selector lint rule have `node:test` unit tests in `unit/` (`npm run test:unit`), also run in CI.
+- Allure's automatic WebDriver screenshots are off (`disableWebdriverScreenshotsReporting: true`); failure screenshots are attached explicitly.
+- `test-results/` was never tracked, so nothing needed untracking.
+- `.env` variables are per platform: `IOS_DEVICE_NAME`, `IOS_PLATFORM_VERSION`, `IOS_UDID`, `ANDROID_*`.
+- `npm run report` is `allure generate allure-results --open`.
+- `overrides` pin patched `axios`, `shell-quote`, `proxy-addr`, `sharp`, `morgan` and `brace-expansion@5` for Appium's transitive dependencies. Advisories left in the drivers' bundled dependencies need upstream releases.
+- Verified iOS 27 locators differ from first guesses: search Cancel is `~close`, the edit form has `close`/`Done` (no Cancel), contact cells are filtered with `visible == 1` while searching, the phone row is a `ContactCardDetailsView` button, and the delete confirmation button sits in an `XCUIElementTypeSheet` that reports `visible="false"`.
+- WebdriverIO 10's strict selectors (`$()` throws on multiple matches) are documented in AGENTS.md.
+- README gained a "Demo tests" table and Troubleshooting entries for strict selectors and `npm audit`.

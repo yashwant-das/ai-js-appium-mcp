@@ -2,6 +2,8 @@
 
 These configurations were tested. Replace the paths with your own.
 
+Tested with appium-mcp 1.97.1, Appium 3.8.0 and appium-xcuitest-driver 12.18.1.
+
 ## Antigravity
 
 ```json

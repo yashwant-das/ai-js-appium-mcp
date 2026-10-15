@@ -78,16 +78,15 @@ Always follow this sequence.
 
 Read the Markdown file provided by the user.
 
-Extract the scenario metadata, including:
+Extract from the prompt:
 
-- Application
-- Platform
-- Bundle ID (iOS)
-- Package name (Android)
+- Test file path (front matter `test:`)
+- Objective
 - Entry point
 - Test steps
 - Expected results
 - Exit point
+- Test data rules
 
 The Markdown document is the source of truth.
 
@@ -97,18 +96,9 @@ Do not modify or reinterpret the business requirements.
 
 ## Step 2 — Determine the Execution Context
 
-Read the project configuration (`.env` and `wdio.conf.js`).
+The app under test is configured once in `app.config.js`. Device settings live in `.env`.
 
-Use the prompt metadata to determine the execution context.
-
-Application-specific values such as:
-
-- `APPIUM_PLATFORM`
-- `APPIUM_BUNDLE_ID`
-- `APPIUM_APP_PACKAGE`
-- `APPIUM_APP_ACTIVITY`
-
-should be supplied during test execution without modifying the project configuration.
+Do not pass app identifiers (`APP_BUNDLE_ID`, `APP_PACKAGE`) on the command line, and do not edit `app.config.js` or `.env` to run a test.
 
 ---
 
@@ -162,49 +152,35 @@ Prefer inspecting the application over guessing selectors.
 
 ## Step 5 — Generate the Test
 
-Generate a complete standalone WebdriverIO test.
+Build the test on screen objects.
 
-Save the test under:
+1. Reuse an existing method in `screens/` or `screens/flows.js` when one does what a step needs.
+2. Otherwise add a method (and its locator) to the screen it belongs to.
+3. Otherwise create a new screen file extending `screens/BaseScreen.js`, with a `rootSelector` and locators written as `this.el({ ios: '...', android: '...' }, 'name')`.
 
-```text
-tests/<scenario>.test.js
-```
+Rules:
 
-Generated tests should:
+- Tests never contain raw selectors (`$`, `$$`, `browser.$`). Lint fails if they do.
+- Screens contain locators and actions only. All `expect` calls live in the test.
+- Screen actions wait for their own elements; tests do not call `waitForDisplayed` on elements.
+- WebdriverIO 10 uses strict selectors: `$()` throws when a selector matches more than one element. Make locators unique, or use `$$()` in the screen when several matches are expected.
+- Use `uniqueContact()` from `support/testData.js` (or add a similar factory) instead of fixed names.
+- Register cleanup with `registerCleanup(name, fn)` from `support/cleanup.js` for everything the test creates, right before creating it.
+- Do not reset the app in the test: the `beforeTest` hook restarts it and returns to the home screen.
 
-- use modern WebdriverIO APIs
-- be readable
-- be maintainable
-- contain meaningful assertions
-- minimize unnecessary waits
-- execute independently
-- use stable selectors
-
-Generate production-quality automation.
-
-Do not generate partial implementations.
+Save the test as `tests/<scenario>.test.js`, matching the prompt's `test:` field.
 
 ---
 
 ## Step 6 — Execute the Test
 
-Execute the generated test using the project configuration.
-
-You MUST supply the target application environment variable (`APPIUM_BUNDLE_ID` or `APPIUM_APP_PACKAGE`) extracted from the prompt metadata inline with the execution command.
-
-Examples:
+Run only the test you are working on:
 
 ```bash
-APPIUM_BUNDLE_ID=com.example.app npm run verify
+WDIO_RETRIES=0 npm test -- --spec tests/<scenario>.test.js
 ```
 
-or
-
-```bash
-APPIUM_APP_PACKAGE=com.example.app npm run verify -- tests/<scenario>.test.js
-```
-
-Wait for execution to complete before proceeding.
+Then run `npm run lint`. Before reporting success, run the full suite with `npm test`.
 
 ---
 
@@ -217,6 +193,8 @@ If execution fails, investigate using:
 - page source
 - generated locators
 - Appium MCP inspection tools
+- `test-results/failures/` (screenshot and page source of the failure)
+- the Allure report (`npm run report`)
 
 Common issues include:
 
@@ -374,6 +352,9 @@ This repository provides:
 - Execution harness
 - Generated test location
 - Debug artifacts
+- Screen objects and shared flows
+- App reset, test data and cleanup helpers
+- Allure reporting
 
 This repository does **not** provide:
 
@@ -385,6 +366,16 @@ This repository does **not** provide:
 - device provisioning
 
 Those responsibilities remain with the user and the AI agent.
+
+---
+
+# Adopt this kit for your app
+
+1. Set your app in `app.config.js` (`ios.bundleId`, and `android.appPackage` / `appActivity` if you test Android).
+2. Set your device in `.env` (copy `.env.example`).
+3. Replace `dismissLeftovers` in `support/appState.js` with what your app can be left showing after a restart, and make `resetToHome` wait for your home screen.
+4. Delete the Contacts screens, `screens/flows.js` contents and `tests/*.test.js`, and replace `uniqueContact` with factories for your data.
+5. Write prompts in `prompts/` from `prompts/templates/prompt-template.md` and give them to the agent.
 
 ---
 
