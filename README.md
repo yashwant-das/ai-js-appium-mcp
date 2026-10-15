@@ -37,8 +37,8 @@ The agent explores the app through Appium MCP, writes a test, and runs it throug
 
 Prerequisites:
 
-- Node.js 22+
-- Appium Server with the XCUITest (iOS) or UiAutomator2 (Android) driver
+- Node.js 24+ (`.nvmrc`)
+- Nothing else for Appium: `npm install` installs Appium 3 and both drivers into the project
 - Xcode and an iOS Simulator, or the Android SDK and an emulator
 - [Appium MCP](https://github.com/appium/appium-mcp), configured in an MCP-capable agent such as Claude Code, Cursor, OpenCode, Gemini CLI or Antigravity. Tested configurations are in [docs/appium-mcp-setup.md](docs/appium-mcp-setup.md).
 
@@ -76,11 +76,10 @@ Every test creates contacts with unique names (`John Doe-<run id>`) and deletes 
 
 ## Test reports and results
 
-- CI runs ESLint on every push and pull request. The UI tests need a simulator or emulator, so they run locally, not in CI.
+- CI runs ESLint and the unit tests (`npm run test:unit`) on pushes and pull requests to `master`. The UI tests need a simulator or emulator, so they run locally, not in CI.
 - The spec reporter prints results to the console; `npm run report` builds an Allure report from `allure-results/`. Failures attach a screenshot and the page source, also saved in `test-results/failures/`.
-- Lint also rejects raw selectors in `tests/`: every locator lives in a screen object.
-- CI also runs the unit tests for the support code (`npm run test:unit`).
-- The lint rules that matter most for agent-written tests: `wdio/await-expect` (every assertion awaited), `wdio/no-debug` and `wdio/no-pause` (explicit waits only), and `chai-friendly/no-unused-expressions`. A Husky pre-commit hook runs them on staged files.
+- Failing tests are retried once by default. Set `WDIO_RETRIES=0` (in `.env` or inline) when checking that a test is stable.
+- The lint rules that matter most for agent-written tests: no raw selectors in `tests/` (every locator lives in a screen object), `wdio/await-expect` (every assertion awaited), `wdio/no-debug` and `wdio/no-pause` (explicit waits only), and `chai-friendly/no-unused-expressions`. A Husky pre-commit hook runs them on staged files.
 
 ## Tech stack
 
@@ -117,7 +116,7 @@ Every test creates contacts with unique names (`John Doe-<run id>`) and deletes 
 | Reads page source and takes screenshots | Stores and runs the agent-written tests |
 | Interacts with the app | Lint rules for generated code |
 
-Not included: a prompt parser, code generator or DSL, and management of the Appium server, simulators, emulators or devices.
+Not included: a prompt parser, code generator or DSL, and management of simulators, emulators or devices. `npm run appium` starts the project's Appium, but you start it yourself.
 
 ## Troubleshooting
 
@@ -131,7 +130,8 @@ Not included: a prompt parser, code generator or DSL, and management of the Appi
 
 - [docs/appium-mcp-setup.md](docs/appium-mcp-setup.md): tested Appium MCP configurations
 - [docs/future-updates.md](docs/future-updates.md): planned improvements
-- [AGENTS.md](AGENTS.md): how the agent writes, runs and fixes tests
+- [AGENTS.md](AGENTS.md): how the agent writes, runs and fixes tests, and how to adopt the kit for your own app
+- [docs/superpowers/specs/2026-10-15-starter-kit-design.md](docs/superpowers/specs/2026-10-15-starter-kit-design.md): design of the starter kit
 
 ## License
 
