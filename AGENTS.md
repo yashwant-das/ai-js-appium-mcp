@@ -2,6 +2,8 @@
 
 # ai-js-appium-mcp - AI Agent Instructions
 
+> This file is for the AI agent. People start at [README.md](README.md); [docs/framework.md](docs/framework.md) explains the code the agent works with.
+
 ## Purpose
 
 This repository is an execution harness for AI-generated WebdriverIO mobile tests.
@@ -9,7 +11,7 @@ This repository is an execution harness for AI-generated WebdriverIO mobile test
 The AI agent is responsible for the complete automation lifecycle:
 
 - Read and understand the user's Markdown test plan.
-- Determine the execution context from the prompt metadata.
+- Determine the execution context from `app.config.js` and `.env`.
 - Analyze the application using Appium MCP.
 - Generate a WebdriverIO test.
 - Execute the test.
@@ -78,16 +80,15 @@ Always follow this sequence.
 
 Read the Markdown file provided by the user.
 
-Extract the scenario metadata, including:
+Extract from the prompt:
 
-- Application
-- Platform
-- Bundle ID (iOS)
-- Package name (Android)
+- Test file path (front matter `test:`)
+- Objective
 - Entry point
 - Test steps
 - Expected results
 - Exit point
+- Test data rules
 
 The Markdown document is the source of truth.
 
@@ -97,18 +98,9 @@ Do not modify or reinterpret the business requirements.
 
 ## Step 2 — Determine the Execution Context
 
-Read the project configuration (`.env` and `wdio.conf.js`).
+The app under test is configured once in `app.config.js`. Device settings live in `.env`.
 
-Use the prompt metadata to determine the execution context.
-
-Application-specific values such as:
-
-- `APPIUM_PLATFORM`
-- `APPIUM_BUNDLE_ID`
-- `APPIUM_APP_PACKAGE`
-- `APPIUM_APP_ACTIVITY`
-
-should be supplied during test execution without modifying the project configuration.
+Do not pass app identifiers (`APP_BUNDLE_ID`, `APP_PACKAGE`) on the command line, and do not edit `app.config.js` or `.env` to run a test.
 
 ---
 
@@ -116,7 +108,7 @@ should be supplied during test execution without modifying the project configura
 
 Assume the user has already:
 
-- Started the Appium server.
+- Started the Appium server (`npm run appium` starts the project's pinned Appium and drivers).
 - Started the iOS Simulator or Android Emulator.
 - Configured Appium MCP.
 
@@ -162,49 +154,35 @@ Prefer inspecting the application over guessing selectors.
 
 ## Step 5 — Generate the Test
 
-Generate a complete standalone WebdriverIO test.
+Build the test on screen objects.
 
-Save the test under:
+1. Reuse an existing method in `screens/` or `screens/flows.js` when one does what a step needs.
+2. Otherwise add a method (and its locator) to the screen it belongs to.
+3. Otherwise create a new screen file extending `screens/BaseScreen.js`, with a `rootSelector` and locators written as `this.el({ ios: '...', android: '...' }, 'name')`.
 
-```text
-tests/<scenario>.test.js
-```
+Rules:
 
-Generated tests should:
+- Tests never contain raw selectors (`$`, `$$`, `browser.$`). Lint fails if they do.
+- Screens contain locators and actions only. All `expect` calls live in the test.
+- Screen actions wait for their own elements; tests do not call `waitForDisplayed` on elements.
+- WebdriverIO 10 uses strict selectors: `$()` throws when a selector matches more than one element. Make locators unique, or use `$$()` in the screen when several matches are expected.
+- Use `uniqueContact()` from `support/testData.js` (or add a similar factory) instead of fixed names.
+- Register cleanup with `registerCleanup(name, fn)` from `support/cleanup.js` for everything the test creates, right before creating it.
+- Do not reset the app in the test: the `beforeTest` hook restarts it and returns to the home screen.
 
-- use modern WebdriverIO APIs
-- be readable
-- be maintainable
-- contain meaningful assertions
-- minimize unnecessary waits
-- execute independently
-- use stable selectors
-
-Generate production-quality automation.
-
-Do not generate partial implementations.
+Save the test as `tests/<scenario>.test.js`, matching the prompt's `test:` field.
 
 ---
 
 ## Step 6 — Execute the Test
 
-Execute the generated test using the project configuration.
-
-You MUST supply the target application environment variable (`APPIUM_BUNDLE_ID` or `APPIUM_APP_PACKAGE`) extracted from the prompt metadata inline with the execution command.
-
-Examples:
+Run only the test you are working on:
 
 ```bash
-APPIUM_BUNDLE_ID=com.example.app npm run verify
+WDIO_RETRIES=0 npm test -- --spec tests/<scenario>.test.js
 ```
 
-or
-
-```bash
-APPIUM_APP_PACKAGE=com.example.app npm run verify -- tests/<scenario>.test.js
-```
-
-Wait for execution to complete before proceeding.
+Then run `npm run lint`. Before reporting success, run the full suite with `npm test`.
 
 ---
 
@@ -217,6 +195,8 @@ If execution fails, investigate using:
 - page source
 - generated locators
 - Appium MCP inspection tools
+- `test-results/failures/` (screenshot and page source of the failure)
+- the Allure report (`npm run report`)
 
 Common issues include:
 
@@ -235,15 +215,11 @@ Avoid guessing.
 
 ## Step 8 — Improve the Test
 
-Update only what is necessary.
+Update only what is necessary, in the right place:
 
-Examples include:
-
-- improving selectors
-- scrolling before interaction
-- waiting for visibility
-- dismissing alerts
-- refining assertions
+- In the screen object: improving locators, scrolling before interaction, waiting for elements, dismissing alerts.
+- In `support/appState.js`: handling a screen the app can be left on after a restart (`dismissLeftovers`).
+- In the test: refining assertions and the order of steps.
 
 Keep the generated automation simple and maintainable.
 
@@ -309,7 +285,6 @@ Choose the Appium MCP tools that best fit the scenario. Prefer reliable and stab
 
 - `appium_gesture`
 - `appium_set_value`
-- `appium_alert`
 - `appium_context`
 
 ## Validation
@@ -323,10 +298,9 @@ Choose the Appium MCP tools that best fit the scenario. Prefer reliable and stab
 
 Prefer stable locators using the following priority:
 
-1. Accessibility ID
-2. Resource ID
-3. Native platform locators
-4. XPath (last resort)
+1. Accessibility ID (`~name`)
+2. iOS predicate string or class chain; Android resource ID
+3. XPath (last resort)
 
 Avoid brittle XPath whenever possible.
 
@@ -339,7 +313,7 @@ Generated tests should be:
 - deterministic
 - readable
 - maintainable
-- self-contained
+- independent of other tests and of earlier runs
 - production quality
 
 Avoid:
@@ -358,7 +332,7 @@ When a test fails:
 
 1. Inspect the application.
 2. Determine the root cause.
-3. Update the generated test.
+3. Update the screen object, `support/appState.js` or the test, whichever holds the cause.
 4. Execute the test again.
 
 Repeat until the test passes successfully.
@@ -374,17 +348,26 @@ This repository provides:
 - Execution harness
 - Generated test location
 - Debug artifacts
+- Screen objects and shared flows
+- App reset, test data and cleanup helpers
+- Allure reporting
 
 This repository does **not** provide:
 
 - prompt parsing
 - custom code generation
-- Appium server management
+- running the Appium server for you (it is pinned in `package.json`; you start it)
 - simulator management
 - emulator management
 - device provisioning
 
 Those responsibilities remain with the user and the AI agent.
+
+---
+
+# Adopting the kit for another app
+
+If the user asks you to switch the kit to a different app, follow [Using it for your own app](README.md#using-it-for-your-own-app) in the README.
 
 ---
 

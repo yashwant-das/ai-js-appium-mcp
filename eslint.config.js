@@ -1,55 +1,57 @@
-const js = require("@eslint/js");
+const js = require('@eslint/js');
+const globals = require('globals');
+const wdio = require('eslint-plugin-wdio');
+const chaiFriendly = require('eslint-plugin-chai-friendly');
+
+const RAW_SELECTOR = 'Use a screen object method instead of a raw selector.';
 
 module.exports = [
+  {
+    ignores: ['allure-results/', 'allure-report/', 'test-results/', '.superpowers/']
+  },
   js.configs.recommended,
   {
     languageOptions: {
-      ecmaVersion: 2022,
-      sourceType: "module",
+      ecmaVersion: 2023,
+      sourceType: 'commonjs',
       globals: {
-        describe: "readonly",
-        it: "readonly",
-        before: "readonly",
-        after: "readonly",
-        beforeEach: "readonly",
-        afterEach: "readonly",
-        browser: "readonly",
-        $: "readonly",
-        $$: "readonly",
-        expect: "readonly",
-        process: "readonly",
-        require: "readonly",
-        __dirname: "readonly",
-        module: "readonly",
-        exports: "readonly",
-        console: "readonly",
-      },
+        ...globals.node,
+        ...globals.mocha,
+        browser: 'readonly',
+        driver: 'readonly',
+        $: 'readonly',
+        $$: 'readonly',
+        expect: 'readonly'
+      }
     },
     plugins: {
-      wdio: require("eslint-plugin-wdio"),
-      "chai-friendly": require("eslint-plugin-chai-friendly"),
+      wdio,
+      'chai-friendly': chaiFriendly
     },
     rules: {
-      "no-unused-vars": ["error", { argsIgnorePattern: "^_" }],
-      "no-console": "warn",
-      "no-unused-expressions": "off",
-      "chai-friendly/no-unused-expressions": "error",
-      "wdio/await-expect": "error",
-      "wdio/no-debug": "error",
-      "wdio/no-pause": "error",
-    },
+      'no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
+      'no-console': 'warn',
+      'no-unused-expressions': 'off',
+      'chai-friendly/no-unused-expressions': 'error',
+      'wdio/await-expect': 'error',
+      'wdio/no-debug': 'error',
+      'wdio/no-pause': 'error'
+    }
   },
   {
-    files: ["tests/**/*.test.js"],
+    files: ['tests/**/*.js'],
     rules: {
-      "no-unused-expressions": "off",
-      "chai-friendly/no-unused-expressions": "error",
-    },
+      'no-restricted-syntax': [
+        'error',
+        { selector: 'CallExpression[callee.name=/^\\$\\$?$/]', message: RAW_SELECTOR },
+        { selector: 'CallExpression[callee.property.name=/^\\$\\$?$/]', message: RAW_SELECTOR }
+      ]
+    }
   },
   {
-    files: ["wdio.conf.js"],
+    files: ['config/**/*.js', 'support/**/*.js', 'unit/**/*.js'],
     rules: {
-      "no-console": "off",
-    },
-  },
+      'no-console': 'off'
+    }
+  }
 ];

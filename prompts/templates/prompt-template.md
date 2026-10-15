@@ -1,8 +1,6 @@
 ---
 title: <Scenario Name>
-app: <App Name>
-platform: <ios/android>
-bundleId: <iOS Bundle ID> # or packageName for Android
+test: tests/<scenario>.test.js
 version: 1
 ---
 
@@ -47,6 +45,13 @@ version: 1
 ## Notes
 
 - <Any specific instructions for the AI Agent (e.g., Handle permission dialogs, prefer Accessibility IDs, avoid XPath)>
+
+---
+
+## Test Data
+
+- Use `uniqueContact()` (or your app's equivalent factory in `support/testData.js`) instead of fixed names.
+- Register cleanup for everything the test creates.
 
 ---
 

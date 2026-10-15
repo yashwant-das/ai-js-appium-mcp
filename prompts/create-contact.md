@@ -1,9 +1,7 @@
 ---
 title: Create Contact
-app: contacts
-platform: ios
-bundleId: com.apple.MobileAddressBook
-version: 1
+test: tests/create-contact.test.js
+version: 2
 ---
 
 # Create Contact
@@ -29,19 +27,19 @@ Create a new contact in the Contacts app and verify that it is successfully save
 
 1. Open the Contacts app if it is not already active.
 2. Tap the **Add** button to create a new contact.
-3. Enter **John** as the first name.
-4. Enter **Doe** as the last name.
-5. Add the phone number **9876543210**.
-6. Add the email address **john.doe@example.com**.
+3. Enter the generated first name (`uniqueContact().first`).
+4. Enter the generated last name.
+5. Add the generated phone number.
+6. Add the generated email address.
 7. Tap **Done** to save the contact.
 8. Return to the contacts list if necessary.
-9. Verify that the newly created contact **John Doe** is visible in the contacts list.
+9. Search for the contact's full name and verify exactly one result.
 
 ---
 
 ## Expected Results
 
-- A new contact named **John Doe** is created successfully.
+- A new contact is created successfully.
 - The contact details are saved correctly.
 - The contact appears in the contacts list.
 - No validation or application errors are displayed.
@@ -52,7 +50,7 @@ Create a new contact in the Contacts app and verify that it is successfully save
 
 - The Contacts app remains open.
 - The contacts list is displayed.
-- The newly created contact **John Doe** is visible.
+- The new contact is found by search.
 
 ---
 
@@ -68,6 +66,5 @@ Create a new contact in the Contacts app and verify that it is successfully save
 
 ## Additional Context (Optional)
 
-- The simulator may already contain existing contacts.
-- If duplicate names exist, verify the newly created contact using the combination of name, phone number, or email address where appropriate.
+- Names are unique per run, so existing contacts do not affect the result.
 - Some versions of the Contacts app may require tapping **Add Phone** or **Add Email** before entering those fields.
