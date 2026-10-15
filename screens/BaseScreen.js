@@ -11,9 +11,13 @@ class BaseScreen {
     throw new Error(`${this.name} must define rootSelector`);
   }
 
+  get isIOS() {
+    return driver.isIOS;
+  }
+
   // Picks the locator for the platform under test.
   sel(locators, label) {
-    const platform = driver.isIOS ? 'ios' : 'android';
+    const platform = this.isIOS ? 'ios' : 'android';
     const selector = locators[platform];
     if (!selector) {
       throw new Error(`${this.name}.${label} has no ${platform} locator`);

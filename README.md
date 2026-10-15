@@ -8,7 +8,7 @@ You describe a mobile test in plain English. An AI coding agent turns it into a 
 [![Appium](https://img.shields.io/badge/Appium-3-662D91?logo=appium&logoColor=white)](https://appium.io)
 [![Node.js](https://img.shields.io/badge/Node.js-24-339933?logo=node.js&logoColor=white)](https://nodejs.org)
 
-The repo ships ready to run against the iOS Contacts app, with four example tests. To test your own app, change one config file and replace the examples (see [Using it for your own app](#using-it-for-your-own-app)).
+The repo ships ready to run against the Contacts app on both platforms (Apple Contacts on iOS, Google Contacts on Android), with four example tests that run unchanged on each. To test your own app, change one config file and replace the examples (see [Using it for your own app](#using-it-for-your-own-app)).
 
 ## Who does what
 
@@ -54,20 +54,24 @@ sequenceDiagram
 
 ## One-time setup
 
-You need macOS with Xcode and an iOS Simulator (or the Android SDK and an emulator for Android apps), Node.js 24 and an MCP-capable AI agent.
+You need Node.js 24, an MCP-capable AI agent, and the tools for the platform you test:
+
+- **iOS:** macOS with Xcode and an iOS Simulator.
+- **Android:** Android Studio with an emulator (the examples were verified on Android 17, API 37, with Google Contacts), and `ANDROID_HOME` set to your SDK path (usually `~/Library/Android/sdk` on macOS) in the terminal that runs Appium.
 
 ```bash
 git clone https://github.com/yashwant-das/ai-js-appium-mcp.git && cd ai-js-appium-mcp
 nvm use                   # Node 24, from .nvmrc
 npm install               # also installs Appium 3 and the XCUITest and UiAutomator2 drivers
-cp .env.example .env      # set your simulator name, iOS version and (optionally) UDID
+cp .env.example .env      # set your simulator/emulator names, OS versions and (optionally) UDIDs
 ```
 
 Then, each time you work with it:
 
 ```bash
-npm run appium            # in its own terminal, with the simulator booted
-npm test                  # optional: run the example tests to check everything works
+npm run appium            # in its own terminal, with the simulator or emulator booted
+npm test                  # optional: run the example tests on iOS
+npm run test:android      # optional: run them on Android
 ```
 
 Finally, connect Appium MCP to your agent once. [docs/appium-mcp.md](docs/appium-mcp.md) has the install steps, tested configs and how to check the agent can see it.
@@ -101,7 +105,7 @@ Finally, connect Appium MCP to your agent once. [docs/appium-mcp.md](docs/appium
 
 ## Running tests yourself
 
-Tests run on **iOS** by default: `npm test` and `npm run test:ios` are the same command, using the iOS Simulator set in `.env` and the bundle ID in `app.config.js`. Android is opt-in with `npm run test:android`.
+The same tests run on both platforms. **iOS is the default:** `npm test` and `npm run test:ios` are the same command, using the iOS Simulator set in `.env` and `ios.bundleId` from `app.config.js`. `npm run test:android` uses the emulator set in `.env` (`ANDROID_UDID`, for example `emulator-5554`) and `android.appPackage` / `appActivity`.
 
 ```bash
 # iOS (default)
@@ -111,7 +115,7 @@ npm test -- --spec tests/create-contact.test.js   # one test
 WDIO_RETRIES=0 npm test                           # no automatic retry, to check a test is stable
 
 # Android
-npm run test:android                              # all tests (set android.* in app.config.js first)
+npm run test:android                              # all tests
 npm run test:android -- --spec tests/my.test.js   # one test
 
 # Reports and checks
@@ -125,7 +129,7 @@ When a test fails, its screenshot and page source are saved to `test-results/fai
 
 ## Using it for your own app
 
-1. Set your app in [app.config.js](app.config.js): `ios.bundleId`, and `android.appPackage` / `android.appActivity` if you test Android.
+1. Set your app in [app.config.js](app.config.js): `ios.bundleId` and/or `android.appPackage` / `android.appActivity`. Leave a platform empty if you don't test it.
 2. Set your device in `.env`.
 3. Rewrite [support/appState.js](support/appState.js) for your app: its imports, `dismissLeftovers` (what your app can be left showing after a restart, such as onboarding or an open form) and the home screen `resetToHome` waits for. It imports the Contacts screens, so do this before deleting them.
 4. Delete the Contacts screens, the contents of `screens/flows.js` and the files in `tests/`. Replace `uniqueContact` in `support/testData.js` with factories for your own data.
@@ -142,7 +146,7 @@ When a test fails, its screenshot and page source are saved to `test-results/fai
 | [edit-contact](tests/edit-contact.test.js) | [prompt](prompts/edit-contact.md) | A changed phone number shows on the contact card |
 | [delete-contact](tests/delete-contact.test.js) | [prompt](prompts/delete-contact.md) | A deleted contact no longer appears in search |
 
-Each test creates contacts named `John Doe-<run id>` and deletes them afterwards, so reruns start clean.
+Each test creates contacts named `John Doe-<run id>` and deletes them afterwards, so reruns start clean. Screen objects hold an iOS and an Android locator for every element, so the tests themselves have no platform checks.
 
 ## Project structure
 
@@ -164,6 +168,8 @@ Each test creates contacts named `John Doe-<run id>` and deletes them afterwards
 - **`ECONNREFUSED 127.0.0.1:4723`**: Appium isn't running. Start it with `npm run appium`.
 - **The agent says it has no Appium tools**: Appium MCP isn't connected. See [docs/appium-mcp.md](docs/appium-mcp.md).
 - **`No Android app configured`**: set `android.appPackage` and `android.appActivity` in `app.config.js`.
+- **Android session fails with `ANDROID_HOME` / SDK errors**: export `ANDROID_HOME` in the terminal that runs `npm run appium`, then restart Appium.
+- **`<Screen>.<name> has no android locator`**: that screen object has an iOS locator but no Android one yet. Add it.
 - **A test starts on the wrong screen**: add that screen to `dismissLeftovers` in `support/appState.js`.
 - **`strict mode violation ... resolved to N elements`**: a locator matches more than one element. Make it unique in the screen object.
 - **`npm audit` reports Appium advisories**: the remaining ones are inside the drivers' bundled dependencies and need upstream driver releases; `overrides` in `package.json` patch the rest.

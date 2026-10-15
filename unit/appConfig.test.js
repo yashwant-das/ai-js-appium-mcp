@@ -46,3 +46,12 @@ test('rejects unknown platforms', () => {
 test('the shipped app.config.js targets iOS Contacts', () => {
   assert.equal(resolveApp('ios', {}).appId, 'com.apple.MobileAddressBook');
 });
+
+test('the shipped app.config.js targets Google Contacts on Android', () => {
+  assert.deepEqual(resolveApp('android', {}), {
+    platform: 'android',
+    appId: 'com.google.android.contacts',
+    appPackage: 'com.google.android.contacts',
+    appActivity: 'com.android.contacts.activities.PeopleActivity'
+  });
+});

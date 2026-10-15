@@ -259,3 +259,7 @@ Prompts drop `bundleId` from front matter (the app comes from `app.config.js`). 
 - Verified iOS 27 locators differ from first guesses: search Cancel is `~close`, the edit form has `close`/`Done` (no Cancel), contact cells are filtered with `visible == 1` while searching, the phone row is a `ContactCardDetailsView` button, and the delete confirmation button sits in an `XCUIElementTypeSheet` that reports `visible="false"`.
 - WebdriverIO 10's strict selectors (`$()` throws on multiple matches) are documented in AGENTS.md.
 - README gained a "Demo tests" table and Troubleshooting entries for strict selectors and `npm audit`.
+
+## 14. Android support (added after the first release)
+
+The Out of scope entry "An Android demo app or Android test pass" was reversed at the user's request. The same four tests now run on Google Contacts (`com.google.android.contacts`, Android 17 / API 37 emulator) through `npm run test:android`. Screen objects gained Android locators (`screens/android.js` builds them) and platform branches inside methods where the apps' flows differ; tests and flows are unchanged. The Android capability sets `appium:hideKeyboard` so keyboard onboarding sheets never cover the app. Verification status at commit time: create, search and delete passed individually on Android; the full two-run Android check and the iOS regression run are still to do (see `docs/roadmap.md`). Still out of scope: a single command for both platforms, real devices, and other Android versions (see `docs/roadmap.md`).

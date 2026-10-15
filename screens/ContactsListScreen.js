@@ -1,31 +1,46 @@
 const { $$, browser } = require('@wdio/globals');
 const BaseScreen = require('./BaseScreen');
+const android = require('./android');
 
 const quote = (text) => text.replace(/'/g, "\\'");
 
 class ContactsListScreen extends BaseScreen {
+  // On Android the Create contact button leaves the hierarchy while search
+  // is open, so it only matches the plain list.
   get rootSelector() {
-    return this.sel({ ios: '~Add' }, 'root');
+    return this.sel({ ios: '~Add', android: '~Create contact' }, 'root');
   }
 
   get addButton() {
-    return this.el({ ios: '~Add' }, 'addButton');
+    return this.el({ ios: '~Add', android: '~Create contact' }, 'addButton');
+  }
+
+  // Android only: the bar on the list that opens the search screen.
+  get searchBar() {
+    return this.el({ android: android.id('open_search_bar') }, 'searchBar');
   }
 
   get searchField() {
-    return this.el({ ios: '-ios class chain:**/XCUIElementTypeSearchField' }, 'searchField');
+    return this.el(
+      {
+        ios: '-ios class chain:**/XCUIElementTypeSearchField',
+        android: android.id('open_search_view_edit_text')
+      },
+      'searchField'
+    );
   }
 
   get cancelSearchButton() {
-    return this.el({ ios: '~close' }, 'cancelSearchButton');
+    return this.el({ ios: '~close', android: '~Back' }, 'cancelSearchButton');
   }
 
-  // While searching, the full list stays in the hierarchy as hidden cells,
-  // so only visible cells count.
+  // While searching, the full list stays in the hierarchy, so only search
+  // results count: visible cells on iOS, rows of the search view on Android.
   contactCellSelector(fullName) {
     return this.sel(
       {
-        ios: `-ios predicate string:type == 'XCUIElementTypeCell' AND name == '${quote(fullName)}' AND visible == 1`
+        ios: `-ios predicate string:type == 'XCUIElementTypeCell' AND name == '${quote(fullName)}' AND visible == 1`,
+        android: `android=new UiSelector().resourceId("com.google.android.contacts:id/search_compose_view").childSelector(new UiSelector().text("${fullName}"))`
       },
       'contactCell'
     );
@@ -36,6 +51,9 @@ class ContactsListScreen extends BaseScreen {
   }
 
   async search(text) {
+    if (!this.isIOS && !(await this.searchField.isDisplayed().catch(() => false))) {
+      await this.tap(this.searchBar);
+    }
     await this.tap(this.searchField);
     await this.type(this.searchField, text);
   }

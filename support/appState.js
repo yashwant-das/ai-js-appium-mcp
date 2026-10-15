@@ -15,8 +15,11 @@ async function restartApp() {
 
 // App-specific. When adopting the kit, replace this with whatever your app can
 // be left showing after a restart (onboarding, open forms, pushed screens).
+// The screen objects pick the right locators for iOS and Android.
 async function dismissLeftovers() {
-  await tapIfVisible($('~Continue'), 3000); // keyboard intro on fresh simulators
+  if (driver.isIOS) {
+    await tapIfVisible($('~Continue'), 3000); // keyboard intro on fresh simulators
+  }
 
   // Check the overlays first: the list's Add button can still report as
   // displayed underneath a sheet.
