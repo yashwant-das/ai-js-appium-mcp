@@ -14,7 +14,8 @@
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "prepare": "husky",
-    "appium": "appium"
+    "appium": "appium",
+    "test:unit": "node --test \"unit/**/*.test.js\""
   },
   "lint-staged": {
     "tests/**/*.test.js": "eslint --fix",
