@@ -101,11 +101,20 @@ Finally, connect Appium MCP to your agent once. [docs/appium-mcp.md](docs/appium
 
 ## Running tests yourself
 
+Tests run on **iOS** by default: `npm test` and `npm run test:ios` are the same command, using the iOS Simulator set in `.env` and the bundle ID in `app.config.js`. Android is opt-in with `npm run test:android`.
+
 ```bash
-npm test                                          # all tests (iOS)
+# iOS (default)
+npm test                                          # all tests
+npm run test:ios                                  # same as npm test
 npm test -- --spec tests/create-contact.test.js   # one test
 WDIO_RETRIES=0 npm test                           # no automatic retry, to check a test is stable
-npm run test:android                              # Android (set android.* in app.config.js first)
+
+# Android
+npm run test:android                              # all tests (set android.* in app.config.js first)
+npm run test:android -- --spec tests/my.test.js   # one test
+
+# Reports and checks
 npm run report                                    # build and open the Allure report
 npm run test:unit                                 # unit tests for the framework's own code
 npm run lint                                      # lint, including the agent-code rules
