@@ -9,7 +9,7 @@ This repository is an execution harness for AI-generated WebdriverIO mobile test
 The AI agent is responsible for the complete automation lifecycle:
 
 - Read and understand the user's Markdown test plan.
-- Determine the execution context from the prompt metadata.
+- Determine the execution context from `app.config.js` and `.env`.
 - Analyze the application using Appium MCP.
 - Generate a WebdriverIO test.
 - Execute the test.
@@ -106,7 +106,7 @@ Do not pass app identifiers (`APP_BUNDLE_ID`, `APP_PACKAGE`) on the command line
 
 Assume the user has already:
 
-- Started the Appium server.
+- Started the Appium server (`npm run appium` starts the project's pinned Appium and drivers).
 - Started the iOS Simulator or Android Emulator.
 - Configured Appium MCP.
 
@@ -213,15 +213,11 @@ Avoid guessing.
 
 ## Step 8 — Improve the Test
 
-Update only what is necessary.
+Update only what is necessary, in the right place:
 
-Examples include:
-
-- improving selectors
-- scrolling before interaction
-- waiting for visibility
-- dismissing alerts
-- refining assertions
+- In the screen object: improving locators, scrolling before interaction, waiting for elements, dismissing alerts.
+- In `support/appState.js`: handling a screen the app can be left on after a restart (`dismissLeftovers`).
+- In the test: refining assertions and the order of steps.
 
 Keep the generated automation simple and maintainable.
 
@@ -301,10 +297,9 @@ Choose the Appium MCP tools that best fit the scenario. Prefer reliable and stab
 
 Prefer stable locators using the following priority:
 
-1. Accessibility ID
-2. Resource ID
-3. Native platform locators
-4. XPath (last resort)
+1. Accessibility ID (`~name`)
+2. iOS predicate string or class chain; Android resource ID
+3. XPath (last resort)
 
 Avoid brittle XPath whenever possible.
 
@@ -317,7 +312,7 @@ Generated tests should be:
 - deterministic
 - readable
 - maintainable
-- self-contained
+- independent of other tests and of earlier runs
 - production quality
 
 Avoid:
@@ -336,7 +331,7 @@ When a test fails:
 
 1. Inspect the application.
 2. Determine the root cause.
-3. Update the generated test.
+3. Update the screen object, `support/appState.js` or the test, whichever holds the cause.
 4. Execute the test again.
 
 Repeat until the test passes successfully.
@@ -360,7 +355,7 @@ This repository does **not** provide:
 
 - prompt parsing
 - custom code generation
-- Appium server management
+- running the Appium server for you (it is pinned in `package.json`; you start it)
 - simulator management
 - emulator management
 - device provisioning
@@ -373,7 +368,7 @@ Those responsibilities remain with the user and the AI agent.
 
 1. Set your app in `app.config.js` (`ios.bundleId`, and `android.appPackage` / `appActivity` if you test Android).
 2. Set your device in `.env` (copy `.env.example`).
-3. Replace `dismissLeftovers` in `support/appState.js` with what your app can be left showing after a restart, and make `resetToHome` wait for your home screen.
+3. Rewrite `support/appState.js` for your app: its imports, `dismissLeftovers` (what your app can be left showing after a restart) and the home screen `resetToHome` waits for. It imports the Contacts screens, so do this before deleting them.
 4. Delete the Contacts screens, `screens/flows.js` contents and `tests/*.test.js`, and replace `uniqueContact` with factories for your data.
 5. Write prompts in `prompts/` from `prompts/templates/prompt-template.md` and give them to the agent.
 
