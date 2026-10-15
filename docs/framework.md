@@ -4,7 +4,7 @@ This guide is for people reviewing or extending the code the agent writes. It co
 
 ## What happens when you run `npm test`
 
-1. **Config loads.** `npm test` runs `config/wdio.ios.conf.js`, which extends `config/wdio.shared.conf.js`. The app comes from `app.config.js` (through `support/appConfig.js`); the device and Appium address come from `.env`. Every file matching `tests/**/*.test.js` runs, one at a time.
+1. **Config loads.** `npm test` runs `config/wdio.ios.conf.js` (`npm run test:android` runs `config/wdio.android.conf.js`); both extend `config/wdio.shared.conf.js`. The app comes from `app.config.js` (through `support/appConfig.js`); the device and Appium address come from `.env`. Every file matching `tests/**/*.test.js` runs, one at a time.
 2. **A session starts** on the Appium server with `appium:noReset: true`, so the app keeps its data between tests.
 3. **`beforeTest` resets the app** (`support/appState.js`): it terminates and relaunches the app, dismisses anything a previous run or Appium MCP session left open, and waits for the home screen.
 4. **The test runs.** It calls screen-object methods and makes assertions.
@@ -21,7 +21,10 @@ A failing test is retried once by default. Set `WDIO_RETRIES=0` to see failures 
 module.exports = {
   name: 'Contacts',
   ios: { bundleId: 'com.apple.MobileAddressBook' },
-  android: { appPackage: '', appActivity: '' }
+  android: {
+    appPackage: 'com.google.android.contacts',
+    appActivity: 'com.android.contacts.activities.PeopleActivity'
+  }
 };
 ```
 
@@ -34,11 +37,11 @@ One file per screen, each exporting a single instance of a class that extends `B
 ```js
 class ContactDetailScreen extends BaseScreen {
   get rootSelector() {
-    return this.sel({ ios: '~ContactCardHeaderView' }, 'root');
+    return this.sel({ ios: '~ContactCardHeaderView', android: android.id('large_title') }, 'root');
   }
 
   get editButton() {
-    return this.el({ ios: '~Edit' }, 'editButton');
+    return this.el({ ios: '~Edit', android: android.id('menu_insert_or_edit') }, 'editButton');
   }
 
   async tapEdit() {
@@ -52,12 +55,17 @@ What `BaseScreen` gives every screen:
 | Member | Purpose |
 | --- | --- |
 | `rootSelector` | An element that proves the screen is showing. Each screen overrides it. |
+| `isIOS` | `true` on iOS. Use it inside a method when the two apps need different steps. |
 | `sel({ ios, android }, label)` | Picks the locator for the platform under test. Throws `<Screen>.<label> has no <platform> locator` if one is missing. |
 | `el(locators, label)` | `$(sel(...))`, the usual way to define an element. |
 | `waitForDisplayed()`, `isDisplayed()` | Wait for, or check, the root element. |
 | `tap(el)`, `type(el, text)` | Wait for the element, then click it, or clear it and type. |
 | `tapIfVisible(el, timeout)` | Tap only if the element shows up; never throws. |
 | `scrollTo(el)` | Swipe until the element is on screen. |
+
+**Two platforms, one test.** Every element has an iOS and an Android locator, and the screen picks the right one at run time. When the apps' flows differ, the method branches internally and keeps one name. For example, `EditContactScreen.deleteContact()` scrolls to "Delete Contact" on iOS but opens the toolbar menu on Android, and `NewContactScreen.fill()` taps "add phone" only on iOS, because Android shows an empty phone field from the start. Tests never check the platform.
+
+`screens/android.js` builds the Android selectors. Google Contacts is mostly Jetpack Compose, with few resource IDs, so many locators match on text: `android.id('large_title')`, `android.text('Save')`, `android.editText('First name')`, `android.scrollToText('Email')`.
 
 Conventions:
 
@@ -114,7 +122,7 @@ Rules, some enforced by lint:
 | --- | --- |
 | `wdio.shared.conf.js` | Runner, Mocha, timeouts, retries, reporters (spec and Allure), Appium address, hooks |
 | `wdio.ios.conf.js` | XCUITest capability: `IOS_*` values from `.env`, bundle ID from `app.config.js` |
-| `wdio.android.conf.js` | UiAutomator2 capability: `ANDROID_*` values from `.env`, package and activity from `app.config.js` |
+| `wdio.android.conf.js` | UiAutomator2 capability: `ANDROID_*` values from `.env`, package and activity from `app.config.js`, and `appium:hideKeyboard` so keyboard onboarding sheets (such as Gboard's stylus prompt) never cover the app |
 
 ### `prompts/`: scenarios
 
@@ -139,6 +147,6 @@ A Husky pre-commit hook lints staged files. CI runs lint and the unit tests for 
 ## Adding a new screen
 
 1. Create `screens/MyScreen.js` extending `BaseScreen`, with a `rootSelector` that is unique to that screen.
-2. Define elements with `this.el({ ios: '...', android: '...' }, 'name')`. Fill in only the platforms you test; a missing one fails with a clear message.
+2. Define elements with `this.el({ ios: '...', android: '...' }, 'name')`. Fill in the platforms you test; a missing one fails with `<Screen>.<name> has no <platform> locator`.
 3. Add action methods that wait for their elements (`this.tap`, `this.type`) and read methods that return values.
 4. If the app can be left on this screen after a restart, teach `dismissLeftovers` in `support/appState.js` how to leave it.

@@ -11,7 +11,10 @@ const capability = {
   'appium:udid': process.env.ANDROID_UDID,
   'appium:appPackage': app.appPackage,
   'appium:appActivity': app.appActivity,
-  'appium:noReset': true
+  'appium:noReset': true,
+  // Uses an invisible input method, so keyboard onboarding sheets (such as
+  // Gboard's stylus prompt) never cover the app.
+  'appium:hideKeyboard': true
 };
 
 exports.config = {

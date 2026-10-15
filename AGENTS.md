@@ -160,6 +160,8 @@ Build the test on screen objects.
 2. Otherwise add a method (and its locator) to the screen it belongs to.
 3. Otherwise create a new screen file extending `screens/BaseScreen.js`, with a `rootSelector` and locators written as `this.el({ ios: '...', android: '...' }, 'name')`.
 
+The kit runs on iOS and Android. Give every new element a locator for each platform you can inspect, and keep platform differences inside screen methods (`this.isIOS`). Tests never check the platform. Run the test on each platform: `npm test -- --spec ...` (iOS) and `npm run test:android -- --spec ...`.
+
 Rules:
 
 - Tests never contain raw selectors (`$`, `$$`, `browser.$`). Lint fails if they do.
