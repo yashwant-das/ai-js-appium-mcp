@@ -8,9 +8,11 @@
     "node": ">=24"
   },
   "scripts": {
-    "verify": "wdio run wdio.conf.js",
-    "test": "npm run verify",
-    "clean": "find tests -maxdepth 1 -name \"*.test.js\" -delete && rm -rf test-results",
+    "test": "wdio run config/wdio.ios.conf.js",
+    "test:ios": "wdio run config/wdio.ios.conf.js",
+    "test:android": "wdio run config/wdio.android.conf.js",
+    "verify": "wdio run config/wdio.ios.conf.js",
+    "clean": "rm -rf test-results allure-results allure-report",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "prepare": "husky",
