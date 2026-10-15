@@ -2,6 +2,8 @@
 
 # ai-js-appium-mcp - AI Agent Instructions
 
+> This file is for the AI agent. People start at [README.md](README.md); [docs/framework.md](docs/framework.md) explains the code the agent works with.
+
 ## Purpose
 
 This repository is an execution harness for AI-generated WebdriverIO mobile tests.
@@ -283,7 +285,6 @@ Choose the Appium MCP tools that best fit the scenario. Prefer reliable and stab
 
 - `appium_gesture`
 - `appium_set_value`
-- `appium_alert`
 - `appium_context`
 
 ## Validation
@@ -364,13 +365,9 @@ Those responsibilities remain with the user and the AI agent.
 
 ---
 
-# Adopt this kit for your app
+# Adopting the kit for another app
 
-1. Set your app in `app.config.js` (`ios.bundleId`, and `android.appPackage` / `appActivity` if you test Android).
-2. Set your device in `.env` (copy `.env.example`).
-3. Rewrite `support/appState.js` for your app: its imports, `dismissLeftovers` (what your app can be left showing after a restart) and the home screen `resetToHome` waits for. It imports the Contacts screens, so do this before deleting them.
-4. Delete the Contacts screens, `screens/flows.js` contents and `tests/*.test.js`, and replace `uniqueContact` with factories for your data.
-5. Write prompts in `prompts/` from `prompts/templates/prompt-template.md` and give them to the agent.
+If the user asks you to switch the kit to a different app, follow [Using it for your own app](README.md#using-it-for-your-own-app) in the README.
 
 ---
 

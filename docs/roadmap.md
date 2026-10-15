@@ -1,4 +1,4 @@
-# Future Updates — ai-js-appium-mcp
+# Roadmap
 
 Done in the starter-kit rework (2026-10): app reset before every test, `noReset` documented, scroll-before-tap, recovery from leftover app state, and an Allure report with failure artifacts.
 
