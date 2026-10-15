@@ -21,8 +21,7 @@
     "report": "allure generate allure-results --open"
   },
   "lint-staged": {
-    "tests/**/*.test.js": "eslint --fix",
-    "*.{js,cjs}": "eslint"
+    "*.js": "eslint --fix"
   },
   "keywords": [
     "appium",
