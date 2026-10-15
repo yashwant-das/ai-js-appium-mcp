@@ -3,6 +3,7 @@ const path = require('node:path');
 const { browser } = require('@wdio/globals');
 const allure = require('@wdio/allure-reporter');
 const { runCleanups } = require('./cleanup');
+const { resetToHome } = require('./appState');
 
 async function saveFailureArtifacts(test) {
   const dir = path.join(process.cwd(), 'test-results', 'failures');
@@ -40,4 +41,8 @@ async function afterTest(test, _context, { error }) {
   }
 }
 
-module.exports = { afterTest };
+async function beforeTest() {
+  await resetToHome();
+}
+
+module.exports = { beforeTest, afterTest };

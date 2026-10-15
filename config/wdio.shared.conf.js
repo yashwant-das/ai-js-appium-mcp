@@ -34,5 +34,6 @@ exports.config = {
   connectionRetryTimeout: 120000,
   connectionRetryCount: 0,
 
+  beforeTest: (...args) => require('../support/hooks').beforeTest(...args),
   afterTest: (...args) => require('../support/hooks').afterTest(...args)
 };
