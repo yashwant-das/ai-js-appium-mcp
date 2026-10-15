@@ -12,7 +12,17 @@ exports.config = {
     retries: process.env.WDIO_RETRIES ? Number(process.env.WDIO_RETRIES) : 1
   },
 
-  reporters: ['spec'],
+  reporters: [
+    'spec',
+    [
+      'allure',
+      {
+        outputDir: 'allure-results',
+        disableWebdriverStepsReporting: true,
+        disableWebdriverScreenshotsReporting: true
+      }
+    ]
+  ],
 
   hostname: process.env.APPIUM_HOST || '127.0.0.1',
   port: Number(process.env.APPIUM_PORT || 4723),
@@ -22,5 +32,7 @@ exports.config = {
   bail: 0,
   waitforTimeout: 10000,
   connectionRetryTimeout: 120000,
-  connectionRetryCount: 0
+  connectionRetryCount: 0,
+
+  afterTest: (...args) => require('../support/hooks').afterTest(...args)
 };

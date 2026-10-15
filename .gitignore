@@ -37,9 +37,9 @@ appium-*.log
 coverage/
 .nyc_output/
 test-results/
+allure-results/
+allure-report/
 screenshots/
-# tests/*.test.js
-!tests/helpers/
 
 # Cache
 .eslintcache

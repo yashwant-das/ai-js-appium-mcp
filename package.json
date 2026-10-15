@@ -17,7 +17,8 @@
     "lint:fix": "eslint . --fix",
     "prepare": "husky",
     "appium": "appium",
-    "test:unit": "node --test \"unit/**/*.test.js\""
+    "test:unit": "node --test \"unit/**/*.test.js\"",
+    "report": "allure generate allure-results --open"
   },
   "lint-staged": {
     "tests/**/*.test.js": "eslint --fix",
