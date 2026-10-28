@@ -1,0 +1,8 @@
+node_modules/
+package-lock.json
+test-results/
+allure-results/
+allure-report/
+coverage/
+docs/superpowers/
+prompts/archive/

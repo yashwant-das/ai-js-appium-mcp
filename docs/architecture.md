@@ -1,6 +1,29 @@
-# How the framework works
+# Architecture
 
-This guide is for people reviewing or extending the code the agent writes. It covers what happens during a test run and the conventions each folder follows. For setup and day-to-day use, see the [README](../README.md).
+This guide is for people reviewing or extending the code the agent writes. It covers what happens during a test run and the conventions each folder follows. For the user workflow, see the [README](../README.md); for setup and maintenance, see [development](development.md).
+
+## Components and boundaries
+
+```mermaid
+flowchart TD
+    Prompt["Markdown scenario"] --> Agent["AI coding agent"]
+    Agent --> MCP["Appium MCP: inspect the app"]
+    Agent --> Test["WDIO test: steps and assertions"]
+    Test --> Screens["Screens and shared flows: locators and actions"]
+    Config["app.config.js + .env"] --> Runner["WDIO shared and platform configs"]
+    Runner --> Hooks["Reset before test; artifacts and cleanup after test"]
+    Hooks --> Test
+    Screens --> Server["User-started Appium server"]
+    Server --> Device["Apple Contacts / Google Contacts"]
+    MCP --> Device
+    Hooks --> Results["Failure PNG/XML + Allure results"]
+```
+
+The agent interprets Markdown; the repository has no prompt parser, custom generator or test DSL. MCP is an external authoring dependency. Committed tests execute through WebdriverIO and the user-started Appium server without MCP or an AI agent.
+
+One worker and one Appium session at a time avoid competing device commands. The session uses `noReset: true`: app data persists, while the per-test reset terminates and activates the app and recovers known screens. This is navigation recovery, not a clean installation or a guarantee that all app state is erased.
+
+Cleanup is best effort. Tasks run newest first and failures become warnings and Allure attachments; they do not fail an otherwise passing test. Failure artifact capture runs before cleanup; if screenshot capture itself throws, the current hook does not reach cleanup. Tests may therefore leave contacts behind after interrupted runs. These boundaries matter when diagnosing isolation problems.
 
 ## What happens when you run `npm test`
 
@@ -130,7 +153,7 @@ One Markdown file per test, with `test: tests/<scenario>.test.js` in the front m
 
 ### `unit/`: tests for the framework itself
 
-`node:test` tests for the pure modules (`appConfig`, `testData`, `cleanup`) and for the raw-selector lint rule. Run them with `npm run test:unit`; they need no device.
+`node:test` tests for the pure modules (`appConfig`, `testData`, `cleanup`), the raw-selector lint rule and text/config validation. Run them with `npm run test:unit`; they need no device.
 
 ## Lint rules for agent-written code
 
@@ -142,7 +165,7 @@ One Markdown file per test, with `test: tests/<scenario>.test.js` in the front m
 | `wdio/no-debug` | `browser.debug()` hangs a test run |
 | `chai-friendly/no-unused-expressions` | Catches assertions that are written but never evaluated |
 
-A Husky pre-commit hook lints staged files. CI runs lint and the unit tests for pull requests to `master`.
+Husky checks staged code, Markdown, formatting and text/config hygiene. CI independently checks the full maintained scope and runs offline unit tests; see [quality gates](development.md#quality-gates).
 
 ## Adding a new screen
 

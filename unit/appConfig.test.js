@@ -36,7 +36,10 @@ test('throws a clear error when the Android app is not configured', () => {
 });
 
 test('throws a clear error when the iOS app is not configured', () => {
-  assert.throws(() => resolveApp('ios', {}, {}), /No iOS app configured: set ios\.bundleId in app\.config\.js/);
+  assert.throws(
+    () => resolveApp('ios', {}, {}),
+    /No iOS app configured: set ios\.bundleId in app\.config\.js/
+  );
 });
 
 test('rejects unknown platforms', () => {

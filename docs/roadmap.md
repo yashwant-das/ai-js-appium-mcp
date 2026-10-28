@@ -1,15 +1,24 @@
 # Roadmap
 
-Done in the starter-kit rework (2026-10): app reset before every test, `noReset` documented, scroll-before-tap, recovery from leftover app state, and an Allure report with failure artifacts. Android support followed: the four Contacts tests run unchanged on Google Contacts (Android 17, API 37).
+Active work only. Completed framework behavior is described in [architecture](architecture.md); historical decisions live under [docs/superpowers](superpowers/).
 
-## 0. Verify Android and re-check iOS
+## Verify Android and re-check iOS
 
-Create, search and delete passed individually on Android; edit failed once after an earlier failure left the app in a bad state. Still to do: run the full Android suite twice with `WDIO_RETRIES=0`, re-run the iOS suite twice (screen objects changed for both platforms), and remove leftover `Doe-` contacts from the early Android runs.
+Historical evidence from the Android implementation: create, search and delete passed individually on Google Contacts (Android 17, API 37); edit failed once after an earlier failure left the app in a bad state. This is not a passing full-suite result.
 
-## 1. Graceful fallback when `browser.execute()` fails
+Still to do:
 
-Some Appium drivers don't support WebDriver `execute/sync` for arbitrary scripts, and tests crash with `WebDriverError: Method is not implemented`. `mobile:` commands work. A wrapper that explains the difference, or falls back to a native command, would prevent confusing failures.
+- Run the full Android suite twice with `WDIO_RETRIES=0`.
+- Run the full iOS suite twice without retries after the shared screen changes.
+- Review and remove leftover `Doe-` test contacts from earlier interrupted Android runs.
+- Record device, OS, app version and dependency set alongside results.
+
+See [development evidence](development.md#integration-prerequisites-and-pending-checks) for current integration availability. No fresh device pass is claimed by standards adoption.
+
+## Explain unsupported execute commands
+
+Some drivers reject arbitrary scripts through WebDriver `execute/sync` with `Method is not implemented`; native `mobile:` commands have different support. Investigate a clearer error wrapper or a supported native fallback before adding behavior. Current restart helpers already use `mobile:` commands.
 
 ## Out of scope
 
-Out of scope: a single command that runs both platforms back to back (easy to add later), and real devices or other Android versions.
+A single command for both platforms, real-device support and validation on other Android versions remain outside the demonstrated scope.

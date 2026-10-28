@@ -19,7 +19,5 @@ const capability = {
 
 exports.config = {
   ...shared,
-  capabilities: [
-    Object.fromEntries(Object.entries(capability).filter(([, value]) => value))
-  ]
+  capabilities: [Object.fromEntries(Object.entries(capability).filter(([, value]) => value))]
 };

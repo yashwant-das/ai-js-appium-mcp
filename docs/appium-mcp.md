@@ -4,7 +4,7 @@
 
 ## What it does in this project
 
-| | Appium MCP | `npm test` |
+| Boundary | Appium MCP | `npm test` |
 | --- | --- | --- |
 | **When** | While the agent is writing or fixing a test | Whenever a test runs, by you, the agent or CI |
 | **Who uses it** | The AI agent | WebdriverIO |
@@ -15,17 +15,17 @@ Appium MCP never runs your tests and is not a dependency of this repo. The tests
 
 ## 1. Install
 
-Appium MCP runs with `npx`, so there is nothing to install in this repo. Its own prerequisites are Node.js 22 or newer, Xcode for iOS, and the Android SDK (with `ANDROID_HOME` set) for Android. See its [README](https://github.com/appium/appium-mcp) for the full list.
+Appium MCP runs with `npx`, so there is nothing to install in this repo. Use this project’s Node 24 baseline; iOS needs Xcode and Android needs the SDK with `ANDROID_HOME` set. Check the selected MCP version’s requirements before updating it. See its [README](https://github.com/appium/appium-mcp) for the full list.
 
 ## 2. Add it to your agent
 
-Every MCP-capable agent needs the same three things: a server name (`appium-mcp`), the command `npx -y appium-mcp@latest`, and, for Android, the `ANDROID_HOME` environment variable. Only the config format differs.
+The version-pinned examples use three settings: a server name (`appium-mcp`), the command `npx -y appium-mcp@1.97.1`, and, for Android, the `ANDROID_HOME` environment variable. Only the config format differs.
 
-### Configurations tested with this repo
+### Historically tested configurations
 
-Tested with appium-mcp 1.97.1, Appium 3.8.0 and appium-xcuitest-driver 12.18.1. These run Appium MCP from a local install; replace `<path-to>` with your own paths.
+The existing integration record used appium-mcp 1.97.1, Appium 3.8.0 and appium-xcuitest-driver 12.18.1; these configurations have not been revalidated against the updated lockfile. These run Appium MCP from a local install; replace `<path-to>` with your own paths.
 
-**Antigravity**
+#### Antigravity
 
 ```json
 {
@@ -47,7 +47,7 @@ Tested with appium-mcp 1.97.1, Appium 3.8.0 and appium-xcuitest-driver 12.18.1. 
 
 The `console.*` redirect keeps log output off stdout, which MCP uses for its protocol.
 
-**OpenCode**
+#### OpenCode
 
 ```json
 {
@@ -68,14 +68,14 @@ The `console.*` redirect keeps log output off stdout, which MCP uses for its pro
 
 ### Other agents
 
-These commands come from the Appium MCP README and have not been tested with this repo:
+These upstream-style launcher examples are pinned to the historical MCP version and have not been tested with this repo. Verify the selected client’s CLI syntax before using them:
 
 ```bash
-claude mcp add appium-mcp -- npx -y appium-mcp@latest      # Claude Code
-gemini mcp add appium-mcp npx -y appium-mcp@latest         # Gemini CLI
+claude mcp add appium-mcp -- npx -y appium-mcp@1.97.1      # Claude Code
+gemini mcp add appium-mcp npx -y appium-mcp@1.97.1         # Gemini CLI
 ```
 
-In Cursor, go to **Settings → MCP → Add new MCP Server** and use the command `npx -y appium-mcp@latest`. Other agents take the same command in their own config format.
+In Cursor, go to **Settings → MCP → Add new MCP Server** and use the command `npx -y appium-mcp@1.97.1`. Other agents take the same command in their own config format.
 
 ## 3. Check that it works
 
@@ -88,3 +88,7 @@ In Cursor, go to **Settings → MCP → Add new MCP Server** and use the command
 - **Same device, two clients.** Appium MCP and `npm test` can both drive the same simulator, one after the other. If `npm test` can't start a session while the agent still has an MCP session open, ask the agent to end its session (`appium_session_management`) and run the test again.
 - **Using this project's Appium server instead.** Appium MCP can attach to an existing server when its session is created with `remoteServerUrl` (for example `http://127.0.0.1:4723`). Then both MCP and the tests use the drivers pinned in this repo. See "Remote WebDriver/Appium server" in the Appium MCP README.
 - **Tool names** in [AGENTS.md](../AGENTS.md) (`select_device`, `appium_session_management`, `generate_locators`, `appium_get_page_source`, …) match Appium MCP 1.97. If a newer version renames a tool, update AGENTS.md.
+
+## Version and verification boundaries
+
+Appium MCP is not installed by `npm ci`. Pin and review its external installation separately; the launcher examples deliberately avoid an unbounded `latest`. The [official upstream guide](https://github.com/appium/appium-mcp) evolves independently and describes additional modes and integrations that this repository has not verified. The commands/configurations above are historical examples, not guarantees for every agent client. See [current integration evidence](development.md#integration-prerequisites-and-pending-checks).

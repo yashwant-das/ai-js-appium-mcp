@@ -1,26 +1,24 @@
-# ai-js-appium-mcp
+# Appium MCP Mobile Test Harness
 
-You describe a mobile test in plain English. An AI coding agent turns it into a WebdriverIO test, runs it on a simulator or emulator, and fixes it until it passes. You keep the test and can run it any time, without the agent.
+Describe a mobile scenario in Markdown, then ask an AI coding agent to inspect the app through Appium MCP and write a reusable WebdriverIO test. Review and rerun the saved test independently of the agent. The examples cover Apple Contacts on iOS and Google Contacts on Android.
 
-[![Lint](https://github.com/yashwant-das/ai-js-appium-mcp/actions/workflows/lint.yml/badge.svg)](https://github.com/yashwant-das/ai-js-appium-mcp/actions/workflows/lint.yml)
+[![Quality](https://github.com/yashwant-das/ai-js-appium-mcp/actions/workflows/lint.yml/badge.svg)](https://github.com/yashwant-das/ai-js-appium-mcp/actions/workflows/lint.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![WebdriverIO](https://img.shields.io/badge/WebdriverIO-10-EA5906?logo=webdriverio&logoColor=white)](https://webdriver.io)
 [![Appium](https://img.shields.io/badge/Appium-3-662D91?logo=appium&logoColor=white)](https://appium.io)
 [![Node.js](https://img.shields.io/badge/Node.js-24-339933?logo=node.js&logoColor=white)](https://nodejs.org)
 
-The repo ships ready to run against the Contacts app on both platforms (Apple Contacts on iOS, Google Contacts on Android), with four example tests that run unchanged on each. To test your own app, change one config file and replace the examples (see [Using it for your own app](#using-it-for-your-own-app)).
+## What it demonstrates
 
-## Who does what
+- **Two platforms, one scenario:** four [Contacts tests](tests/) share screen APIs while [screen objects](screens/) contain platform locators and navigation differences.
+- **Inspectable test authoring:** [Markdown prompts](prompts/) provide requirements; the agent uses [Appium MCP](docs/appium-mcp.md) to inspect real screens before generating code. There is no custom parser or test DSL.
+- **Repeatable execution:** [app-state recovery](support/appState.js), [unique contact data](support/testData.js) and [reverse-order cleanup](support/cleanup.js) reduce interference between runs. Cleanup is best effort; persistent app data is retained.
+- **Reviewable agent output:** [ESLint rules](eslint.config.js) reject raw selectors in tests, unawaited assertions, pauses and debug calls. Assertions stay in tests; locators and actions stay in screens.
+- **Failure evidence:** [hooks](support/hooks.js) save screenshots and page source to disk and attach them to Allure alongside cleanup warnings.
 
-| Who | What they do |
-| --- | --- |
-| **You** | Boot a simulator or emulator, start Appium, write the scenario as a Markdown file in `prompts/`, ask the agent to automate it, review what it wrote. |
-| **AI agent** (Claude Code, Cursor, OpenCode, Gemini CLI, …) | Follows [AGENTS.md](AGENTS.md): reads your scenario, looks at the running app through Appium MCP, writes screen-object methods and the test, runs it with `npm test`, and fixes it until it passes. |
-| **[Appium MCP](https://github.com/appium/appium-mcp)** | The agent's eyes and hands while it writes a test: it reads the screen's element tree, suggests locators, taps and types. By default it drives the simulator with its own bundled drivers. It is only used while a test is being written, never when tests run. |
-| **This framework** | Makes tests reliable and repeatable: one config for the app and device, screen objects that hold every locator, a reset to the app's home screen before each test, unique test data that is deleted afterwards, failure screenshots, an Allure report and lint rules for agent-written code. |
-| **Appium server** (`npm run appium`) | Drives the app on the simulator or emulator when tests run with `npm test`. |
+The cross-platform implementation is present; full-suite stability validation remains [pending](docs/roadmap.md). Historical individual Android passes do not establish that every scenario passes on every device.
 
-## How a test gets made
+## Architecture
 
 ```mermaid
 sequenceDiagram
@@ -44,100 +42,90 @@ sequenceDiagram
     Agent-->>You: test written and passing
 ```
 
-1. **You write the scenario** in `prompts/`: objective, steps, expected results. Start from [prompts/templates/prompt-template.md](prompts/templates/prompt-template.md).
-2. **You ask the agent** to automate it.
-3. **The agent inspects the app** through Appium MCP instead of guessing locators.
-4. **The agent writes code** in two places: locators and actions go in a screen object under `screens/`, and the steps and assertions go in `tests/<scenario>.test.js`.
-5. **The agent runs the test** with `npm test`. Before each test the framework restarts the app and returns it to the home screen. Afterwards it deletes any data the test created.
-6. **If the test fails**, the agent reads the error, the failure screenshot and the page source, fixes the screen object or test, and runs it again.
-7. **You get a passing test** that you can review, commit and rerun yourself.
+### Who does what
 
-## One-time setup
+| Who | What they do |
+| --- | --- |
+| **You** | Boot a simulator or emulator, start Appium, write the scenario as a Markdown file in `prompts/`, ask the agent to automate it, review what it wrote. |
+| **AI agent** (Claude Code, Cursor, OpenCode, Gemini CLI, …) | Follows [AGENTS.md](AGENTS.md): reads your scenario, looks at the running app through Appium MCP, writes screen-object methods and the test, runs it with `npm test`, and fixes it until it passes. |
+| **[Appium MCP](https://github.com/appium/appium-mcp)** | The agent's eyes and hands while it writes a test: it reads the screen's element tree, suggests locators, taps and types. By default it drives the simulator with its own bundled drivers. It is only used while a test is being written, never when tests run. |
+| **This framework** | Makes tests reliable and repeatable: one config for the app and device, screen objects that hold every locator, a reset to the app's home screen before each test, unique test data that is deleted afterwards, failure screenshots, an Allure report and lint rules for agent-written code. |
+| **Appium server** (`npm run appium`) | Drives the app on the simulator or emulator when tests run with `npm test`. |
 
-You need Node.js 24, an MCP-capable AI agent, and the tools for the platform you test:
+### Project structure
 
-- **iOS:** macOS with Xcode and an iOS Simulator.
-- **Android:** Android Studio with an emulator (the examples were verified on Android 17, API 37, with Google Contacts), and `ANDROID_HOME` set to your SDK path (usually `~/Library/Android/sdk` on macOS) in the terminal that runs Appium.
-
-```bash
-git clone https://github.com/yashwant-das/ai-js-appium-mcp.git && cd ai-js-appium-mcp
-nvm use                   # Node 24, from .nvmrc
-npm install               # also installs Appium 3 and the XCUITest and UiAutomator2 drivers
-cp .env.example .env      # set your simulator/emulator names, OS versions and (optionally) UDIDs
+```text
+ai-js-appium-mcp/
+├── app.config.js        # App identity; device settings are in .env.example
+├── AGENTS.md            # Agent workflow and engineering rules
+├── prompts/             # Current scenarios, template and archived examples
+├── tests/               # Create, search, edit and delete Contacts scenarios
+├── screens/             # Platform locators, screen actions and shared flows
+├── support/             # Reset, hooks, data, cleanup and gestures
+├── config/              # Shared WebdriverIO, iOS and Android capabilities
+├── unit/                # Device-free tests for helpers and quality rules
+├── scripts/             # Text and configuration validation
+├── .github/             # Offline CI and dependency update configuration
+└── docs/                # Architecture, development, MCP, roadmap and records
 ```
 
-Then, each time you work with it:
+### Tech stack
+
+| Layer | Tool / baseline | Purpose |
+| --- | --- | --- |
+| Runtime | Node.js 24 | Declared local and CI baseline |
+| Test runner | WebdriverIO 10 + Mocha | Execute committed scenarios |
+| Device automation | Appium 3; XCUITest 12 / UiAutomator2 8 | iOS / Android sessions |
+| Agent inspection | External Appium MCP | Discover UI structure during authoring |
+| Reports | Allure 3 + WDIO reporter | Results and failure attachments |
+| Quality | ESLint, markdownlint-cli2, Prettier, node:test, Husky | Offline and staged checks |
+
+Exact dependency versions live in [package.json](package.json) and [package-lock.json](package-lock.json). [Architecture](docs/architecture.md) explains session lifecycle, configuration boundaries and trade-offs.
+
+## Quickstart
+
+Use Node 24 and npm 10 or newer. For iOS, use macOS, Xcode, an iOS Simulator and Apple Contacts. For Android, install the Android SDK, an emulator and Google Contacts, and export `ANDROID_HOME` in the Appium terminal. Examples use English UI labels. [Detailed setup](docs/development.md#setup) covers device configuration and [MCP setup](docs/appium-mcp.md) covers agent authoring.
 
 ```bash
-npm run appium            # in its own terminal, with the simulator or emulator booted
-npm test                  # optional: run the example tests on iOS
-npm run test:android      # optional: run them on Android
+git clone https://github.com/yashwant-das/ai-js-appium-mcp.git
+cd ai-js-appium-mcp
+nvm use
+npm ci
+cp .env.example .env
+# Edit .env for your installed simulator/emulator and OS version.
+npm run check
 ```
 
-Finally, connect Appium MCP to your agent once. [docs/appium-mcp.md](docs/appium-mcp.md) has the install steps, tested configs and how to check the agent can see it.
+The offline check runs linting, Markdown, formatting, text/config validation and unit tests. A successful run ends with zero failed unit tests; it does not launch a device.
 
-## Your first test
+In separate terminals, with your simulator/emulator already booted:
 
-1. Copy the template and fill in the steps:
+```bash
+npm run appium
+```
+
+```bash
+npm test                  # iOS examples
+npm run test:android      # Android examples
+```
+
+Device runs require the configured Contacts app and an available Appium session. A passing run reports four passing specs; this is the expected result, not a claim of a fresh device run.
+
+## Usage
+
+1. Copy [the prompt template](prompts/templates/prompt-template.md) to `prompts/my-scenario.md`; set `test: tests/my-scenario.test.js` and describe steps and expected results.
+2. Connect Appium MCP and ask your agent: **Read AGENTS.md, then automate prompts/my-scenario.md. Appium is running and the device is booted.**
+3. Review the generated screen methods and test, then run it directly:
 
    ```bash
-   cp prompts/templates/prompt-template.md prompts/add-favourite.md
+   WDIO_RETRIES=0 npm test -- --spec tests/my-scenario.test.js
+   # Android equivalent:
+   WDIO_RETRIES=0 npm run test:android -- --spec tests/my-scenario.test.js
    ```
 
-   Set `test: tests/add-favourite.test.js` in its front matter and describe the steps in plain English, the way you'd explain them to a colleague. [prompts/edit-contact.md](prompts/edit-contact.md) is a complete example.
+The agent's intended loop is inspect, generate, execute and diagnose until the scenario passes. It requires a connected agent, MCP and device; the repository does not run that loop on its own. The [first-test walkthrough](docs/development.md#your-first-test) explains what to review.
 
-2. Open your agent in this folder and send it:
-
-   > Read AGENTS.md, then automate prompts/add-favourite.md. Appium is running and the simulator is booted.
-
-3. Let it work. You'll see it open an Appium MCP session, inspect screens, edit files under `screens/` and `tests/`, and run `npm test` until the test passes. It may ask before running commands, depending on your agent's settings.
-
-4. Review the result:
-   - `tests/add-favourite.test.js`: the steps and assertions, with no raw locators
-   - `screens/*.js`: any new screen methods it added
-   - `npm run lint`: should be clean
-
-5. Run it yourself:
-
-   ```bash
-   npm test -- --spec tests/add-favourite.test.js
-   ```
-
-## Running tests yourself
-
-The same tests run on both platforms. **iOS is the default:** `npm test` and `npm run test:ios` are the same command, using the iOS Simulator set in `.env` and `ios.bundleId` from `app.config.js`. `npm run test:android` uses the emulator set in `.env` (`ANDROID_UDID`, for example `emulator-5554`) and `android.appPackage` / `appActivity`.
-
-```bash
-# iOS (default)
-npm test                                          # all tests
-npm run test:ios                                  # same as npm test
-npm test -- --spec tests/create-contact.test.js   # one test
-WDIO_RETRIES=0 npm test                           # no automatic retry, to check a test is stable
-
-# Android
-npm run test:android                              # all tests
-npm run test:android -- --spec tests/my.test.js   # one test
-
-# Reports and checks
-npm run report                                    # build and open the Allure report
-npm run test:unit                                 # unit tests for the framework's own code
-npm run lint                                      # lint, including the agent-code rules
-npm run clean                                     # delete test-results/ and Allure output
-```
-
-When a test fails, its screenshot and page source are saved to `test-results/failures/` and attached in the Allure report.
-
-## Using it for your own app
-
-1. Set your app in [app.config.js](app.config.js): `ios.bundleId` and/or `android.appPackage` / `android.appActivity`. Leave a platform empty if you don't test it.
-2. Set your device in `.env`.
-3. Rewrite [support/appState.js](support/appState.js) for your app: its imports, `dismissLeftovers` (what your app can be left showing after a restart, such as onboarding or an open form) and the home screen `resetToHome` waits for. It imports the Contacts screens, so do this before deleting them.
-4. Delete the Contacts screens, the contents of `screens/flows.js` and the files in `tests/`. Replace `uniqueContact` in `support/testData.js` with factories for your own data.
-5. Write prompts for your app and give them to the agent, as in [Your first test](#your-first-test).
-
-[docs/framework.md](docs/framework.md) explains each of these pieces.
-
-## Example tests
+### Example tests
 
 | Test | Prompt | What it checks |
 | --- | --- | --- |
@@ -146,51 +134,31 @@ When a test fails, its screenshot and page source are saved to `test-results/fai
 | [edit-contact](tests/edit-contact.test.js) | [prompt](prompts/edit-contact.md) | A changed phone number shows on the contact card |
 | [delete-contact](tests/delete-contact.test.js) | [prompt](prompts/delete-contact.md) | A deleted contact no longer appears in search |
 
-Each test creates contacts named `John Doe-<run id>` and deletes them afterwards, so reruns start clean. Screen objects hold an iOS and an Android locator for every element, so the tests themselves have no platform checks.
+Each scenario creates a `John Doe-<run id>` contact and registers deletion before creation. Cleanup failures are reported and may leave data behind. Create supplies phone and email but asserts the saved name and search result; edit explicitly asserts the phone number.
 
-## Project structure
+### Using it for your own app
 
-```text
-├── AGENTS.md            # Instructions for the AI agent
-├── app.config.js        # The app under test
-├── .env.example         # Device and Appium settings (copy to .env)
-├── prompts/             # Your scenarios in Markdown (templates/, archive/)
-├── tests/               # Tests, one per scenario
-├── screens/             # Screen objects (locators and actions) and shared flows
-├── support/             # App reset, hooks, test data, cleanup, gestures
-├── config/              # WebdriverIO config: shared, iOS, Android
-├── unit/                # Unit tests for support code and lint rules
-└── docs/                # Guides and design records
-```
+Set app identity in `app.config.js` and device settings in `.env`. Replace the Contacts reset/navigation logic, then its screens, flows, tests and data factories. Follow the [ordered adaptation checklist](docs/development.md#using-it-for-your-own-app) before deleting imported screens.
 
-## Troubleshooting
+## Verification and reports
 
-- **`ECONNREFUSED 127.0.0.1:4723`**: Appium isn't running. Start it with `npm run appium`.
-- **The agent says it has no Appium tools**: Appium MCP isn't connected. See [docs/appium-mcp.md](docs/appium-mcp.md).
-- **`No Android app configured`**: set `android.appPackage` and `android.appActivity` in `app.config.js`.
-- **Android session fails with `ANDROID_HOME` / SDK errors**: export `ANDROID_HOME` in the terminal that runs `npm run appium`, then restart Appium.
-- **`<Screen>.<name> has no android locator`**: that screen object has an iOS locator but no Android one yet. Add it.
-- **A test starts on the wrong screen**: add that screen to `dismissLeftovers` in `support/appState.js`.
-- **`strict mode violation ... resolved to N elements`**: a locator matches more than one element. Make it unique in the screen object.
-- **`npm audit` reports Appium advisories**: the remaining ones are inside the drivers' bundled dependencies and need upstream driver releases; `overrides` in `package.json` patch the rest.
+| Check | Command | What it proves |
+| --- | --- | --- |
+| Offline quality gates | `npm run check` | Maintained lint/format/config checks and helper unit tests |
+| iOS suite, no retries | `WDIO_RETRIES=0 npm test` | Live Contacts scenarios on the configured iOS device |
+| Android suite, no retries | `WDIO_RETRIES=0 npm run test:android` | Live Contacts scenarios on the configured Android device |
+| Allure report | `npm run report` | Opens results already written to `allure-results/` |
+
+CI runs the offline gates on pushes and PRs to `master`. Mobile runs and MCP authoring are separate manual integration checks. Failures write PNG/XML files under `test-results/failures/` and Allure attachments. See [development](docs/development.md#quality-gates) for individual commands, hook scope, troubleshooting and verification limits.
 
 ## Documentation
 
-- [AGENTS.md](AGENTS.md): the workflow and rules the agent follows
-- [docs/appium-mcp.md](docs/appium-mcp.md): connecting Appium MCP to your agent
-- [docs/framework.md](docs/framework.md): how the framework works, for reviewing or extending agent-written code
-- [docs/roadmap.md](docs/roadmap.md): planned improvements
-- [docs/superpowers/](docs/superpowers/): design records (spec and implementation plan)
-
-## Tech stack
-
-| Layer | Tool | Version |
-| --- | --- | --- |
-| Test runner | WebdriverIO with Mocha | 10 |
-| Device automation | Appium with the XCUITest and UiAutomator2 drivers (devDependencies) | 3, 12, 8 |
-| Agent tooling | Appium MCP | tested with 1.97 |
-| Reporting | Allure 3 with @wdio/allure-reporter (no Java needed) | 3, 10 |
-| Quality gates | ESLint with eslint-plugin-wdio, Husky, lint-staged; CI runs lint and unit tests for pull requests to `master` | 10, 9, 17 |
+- [Architecture](docs/architecture.md): component responsibilities, lifecycle, screen conventions and extension examples.
+- [Development](docs/development.md): detailed setup, configuration, app adaptation, quality gates and verification evidence.
+- [Appium MCP](docs/appium-mcp.md): external inspection service and agent connection examples.
+- [Roadmap](docs/roadmap.md): active device-validation and execute-command work.
+- [Agent instructions](AGENTS.md): scenario generation and engineering rules.
+- [Historical design records](docs/superpowers/): prior design and implementation decisions; current setup is in the guides above.
 
 ## License
 
