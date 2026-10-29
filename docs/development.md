@@ -133,6 +133,8 @@ The desired required check is **Offline quality gates** from the **Quality** wor
 
 Documentation profile: `complete`. Policy: [repo-standards at a429dd2](https://github.com/yashwant-das/repo-standards/tree/a429dd2f2da55a4c3e1c73c7c0d1111f9cd0b9a9). Review date: 2026-10-28. Owner for pending checks and exceptions: Yashwant Das.
 
+At the owner’s request (2026-10-29), `AGENTS.md` retains the original detailed, tested agent workflow without a repository-standards section. The profile and pinned policy revision are recorded here instead.
+
 ### Preserved documentation and evidence
 
 The original README's role table, agent authoring workflow, first-test walkthrough, four prompt/test pairs, app adaptation steps, configuration, troubleshooting and report commands remain in this guide, the README, architecture or MCP guide. `docs/framework.md` was consolidated into `architecture.md`; maintained incoming links were updated. Historical design/implementation records remain under `docs/superpowers/` as records of their time, not current setup instructions. Active stability checks and execute-command work remain in the [roadmap](roadmap.md).
