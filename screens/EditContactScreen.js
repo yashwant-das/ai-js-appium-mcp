@@ -19,7 +19,8 @@ class EditContactScreen extends BaseScreen {
       {
         ios: "-ios predicate string:type == 'XCUIElementTypeTextField' AND name == 'mobile'",
         // The only field whose value starts like a phone number, e.g. "(987) 654-3210".
-        android: 'android=new UiSelector().className("android.widget.EditText").textMatches("^[+(0-9].*")'
+        android:
+          'android=new UiSelector().className("android.widget.EditText").textMatches("^[+(0-9].*")'
       },
       'phoneField'
     );
@@ -40,7 +41,9 @@ class EditContactScreen extends BaseScreen {
   // iOS only: Android deletes from the toolbar menu instead.
   get deleteButton() {
     return this.el(
-      { ios: "-ios predicate string:type == 'XCUIElementTypeStaticText' AND name == 'Delete Contact'" },
+      {
+        ios: "-ios predicate string:type == 'XCUIElementTypeStaticText' AND name == 'Delete Contact'"
+      },
       'deleteButton'
     );
   }

@@ -49,7 +49,7 @@ module.exports = [
     }
   },
   {
-    files: ['config/**/*.js', 'support/**/*.js', 'unit/**/*.js'],
+    files: ['config/**/*.js', 'support/**/*.js', 'unit/**/*.js', 'scripts/**/*.js'],
     rules: {
       'no-console': 'off'
     }

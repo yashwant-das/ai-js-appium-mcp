@@ -1,6 +1,29 @@
-# How the framework works
+# Architecture
 
-This guide is for people reviewing or extending the code the agent writes. It covers what happens during a test run and the conventions each folder follows. For setup and day-to-day use, see the [README](../README.md).
+This guide is for people reviewing or extending the code the agent writes. It covers what happens during a test run and the conventions each folder follows. For the user workflow, see the [README](../README.md); for setup and maintenance, see [development](development.md).
+
+## Components and boundaries
+
+```mermaid
+flowchart TD
+    Prompt["Markdown scenario"] --> Agent["AI coding agent"]
+    Agent --> MCP["Appium MCP: inspect the app"]
+    Agent --> Test["WDIO test: steps and assertions"]
+    Test --> Screens["Screens and shared flows: locators and actions"]
+    Config["app.config.js + .env"] --> Runner["WDIO shared and platform configs"]
+    Runner --> Hooks["Reset before test; artifacts and cleanup after test"]
+    Hooks --> Test
+    Screens --> Server["User-started Appium server"]
+    Server --> Device["Apple Contacts / Google Contacts"]
+    MCP --> Device
+    Hooks --> Results["Failure PNG/XML + Allure results"]
+```
+
+The agent interprets Markdown; the repository has no prompt parser, custom generator or test DSL. MCP is an external authoring dependency. Committed tests execute through WebdriverIO and the user-started Appium server without MCP or an AI agent.
+
+`maxInstances: 1` serializes this WDIO runner’s sessions. It does not prevent a separate MCP client or runner from using the same device; coordinate those clients explicitly. The session uses `noReset: true`: app data persists, while the per-test reset terminates and activates the app and recovers known screens. This is navigation recovery, not a clean installation or a guarantee that all app state is erased.
+
+Cleanup is best effort. Tasks run newest first and failures become warnings and Allure attachments; they do not fail an otherwise passing test. Failure artifact capture runs before cleanup; if screenshot capture itself throws, the current hook does not reach cleanup. Tests may therefore leave contacts behind after interrupted runs. These boundaries matter when diagnosing isolation problems.
 
 ## What happens when you run `npm test`
 
@@ -60,12 +83,12 @@ What `BaseScreen` gives every screen:
 | `el(locators, label)` | `$(sel(...))`, the usual way to define an element. |
 | `waitForDisplayed()`, `isDisplayed()` | Wait for, or check, the root element. |
 | `tap(el)`, `type(el, text)` | Wait for the element, then click it, or clear it and type. |
-| `tapIfVisible(el, timeout)` | Tap only if the element shows up; never throws. |
-| `scrollTo(el)` | Swipe until the element is on screen. |
+| `tapIfVisible(el, timeout)` | Returns false if the visibility wait fails; clicks a visible element. Click errors propagate. |
+| `scrollTo(el)` | Returns if already displayed; otherwise delegates to native `scrollIntoView` with a five-scroll limit. |
 
-**Two platforms, one test.** Every element has an iOS and an Android locator, and the screen picks the right one at run time. When the apps' flows differ, the method branches internally and keeps one name. For example, `EditContactScreen.deleteContact()` scrolls to "Delete Contact" on iOS but opens the toolbar menu on Android, and `NewContactScreen.fill()` taps "add phone" only on iOS, because Android shows an empty phone field from the start. Tests never check the platform.
+**Two platforms, one test.** Shared elements provide platform locators, and the screen picks the right one at run time. Platform-only controls (such as iOS’s add-phone button and Android’s delete-menu item) intentionally have a locator for just that platform and are accessed inside platform branches. When the apps' flows differ, the method branches internally and keeps one name. For example, `EditContactScreen.deleteContact()` scrolls to "Delete Contact" on iOS but opens the toolbar menu on Android, and `NewContactScreen.fill()` taps "add phone" only on iOS, because Android shows an empty phone field from the start. Tests never check the platform.
 
-`screens/android.js` builds the Android selectors. Google Contacts is mostly Jetpack Compose, with few resource IDs, so many locators match on text: `android.id('large_title')`, `android.text('Save')`, `android.editText('First name')`, `android.scrollToText('Email')`.
+`screens/android.js` builds the Android selectors. The inspected Google Contacts UI used Compose elements with few resource IDs, so this implementation often locates controls by text: `android.id('large_title')`, `android.text('Save')`, `android.editText('First name')`, `android.scrollToText('Email')`.
 
 Conventions:
 
@@ -103,7 +126,7 @@ Rules, some enforced by lint:
 
 - No raw selectors (`$`, `$$`, `browser.$`, `driver.$`). Lint fails with "Use a screen object method instead of a raw selector."
 - No app reset in the test; `beforeTest` does it.
-- Generated data, not fixed names, and a cleanup registered **before** the data is created, so it still runs if the test fails halfway.
+- Generated data, not fixed names, and a cleanup registered **before** the data is created, so it remains queued if the test fails halfway. The after-test hook attempts cleanup; an interrupted run or artifact-capture error can prevent it.
 
 ### `support/`: shared machinery
 
@@ -112,7 +135,7 @@ Rules, some enforced by lint:
 | `appConfig.js` | `resolveApp(platform)` reads `app.config.js` and env overrides. |
 | `appState.js` | `restartApp()`, `dismissLeftovers()` and `resetToHome()`. **App-specific:** `dismissLeftovers` knows which Contacts screens can be left open, and `resetToHome` waits for the contacts list. |
 | `hooks.js` | `beforeTest` (reset) and `afterTest` (failure artifacts, then cleanup). |
-| `testData.js` | `uniqueContact(overrides)` returns `{ first, last, phone, email, fullName }` with a last name like `Doe-<runId><n>`, unique within and across runs. |
+| `testData.js` | `uniqueContact(overrides)` returns `{ first, last, phone, email, fullName }` with a last name like `Doe-<runId><n>`, using a process-start timestamp and per-process counter to reduce collisions; cross-process uniqueness is not guaranteed if processes start in the same millisecond. |
 | `cleanup.js` | `registerCleanup(name, fn)` queues a task; `afterTest` runs the queue newest first. |
 | `gestures.js` | `tapIfVisible` and `scrollTo`, used by `BaseScreen`. |
 
@@ -130,7 +153,7 @@ One Markdown file per test, with `test: tests/<scenario>.test.js` in the front m
 
 ### `unit/`: tests for the framework itself
 
-`node:test` tests for the pure modules (`appConfig`, `testData`, `cleanup`) and for the raw-selector lint rule. Run them with `npm run test:unit`; they need no device.
+`node:test` tests for the pure modules (`appConfig`, `testData`, `cleanup`), the raw-selector lint rule and text/config validation. Run them with `npm run test:unit`; they need no device.
 
 ## Lint rules for agent-written code
 
@@ -142,7 +165,7 @@ One Markdown file per test, with `test: tests/<scenario>.test.js` in the front m
 | `wdio/no-debug` | `browser.debug()` hangs a test run |
 | `chai-friendly/no-unused-expressions` | Catches assertions that are written but never evaluated |
 
-A Husky pre-commit hook lints staged files. CI runs lint and the unit tests for pull requests to `master`.
+Husky checks staged code, Markdown, formatting and text/config hygiene. CI independently checks the full maintained scope and runs offline unit tests; see [quality gates](development.md#quality-gates).
 
 ## Adding a new screen
 

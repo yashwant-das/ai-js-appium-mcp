@@ -18,10 +18,12 @@
     "prepare": "husky",
     "appium": "appium",
     "test:unit": "node --test \"unit/**/*.test.js\"",
-    "report": "allure generate allure-results --open"
-  },
-  "lint-staged": {
-    "*.js": "eslint --fix"
+    "report": "allure generate allure-results --open",
+    "lint:md": "markdownlint-cli2 \"*.md\" \"docs/**/*.md\" \"prompts/**/*.md\"",
+    "format:check": "prettier --check \"**/*.{js,cjs,json,jsonc,yml,yaml}\"",
+    "format": "prettier --write \"**/*.{js,cjs,json,jsonc,yml,yaml}\"",
+    "check:files": "node scripts/check-files.js",
+    "check": "npm run lint && npm run lint:md && npm run format:check && npm run check:files && npm run test:unit"
   },
   "keywords": [
     "appium",
@@ -37,33 +39,41 @@
   ],
   "author": "",
   "devDependencies": {
-    "@eslint/js": "^10.0.1",
-    "@wdio/allure-reporter": "^10.0.1",
-    "@wdio/cli": "^10.0.2",
-    "@wdio/globals": "^10.0.2",
-    "@wdio/local-runner": "^10.0.2",
-    "@wdio/mocha-framework": "^10.0.1",
-    "@wdio/spec-reporter": "^10.0.1",
-    "allure": "^3.20.1",
-    "appium": "^3.8.0",
-    "appium-uiautomator2-driver": "^8.7.0",
-    "appium-xcuitest-driver": "^12.18.1",
-    "chai": "^6.3.0",
-    "dotenv": "^18.0.8",
-    "eslint": "^10.12.0",
-    "eslint-plugin-chai-friendly": "^1.2.1",
-    "eslint-plugin-wdio": "^10.0.1",
-    "globals": "^17.13.0",
-    "husky": "^9.1.7",
-    "lint-staged": "^17.6.0"
+    "@eslint/js": "10.0.1",
+    "@wdio/allure-reporter": "10.1.0",
+    "@wdio/cli": "10.1.0",
+    "@wdio/globals": "10.1.0",
+    "@wdio/local-runner": "10.1.0",
+    "@wdio/mocha-framework": "10.1.0",
+    "@wdio/spec-reporter": "10.1.0",
+    "allure": "3.22.1",
+    "appium": "3.9.0",
+    "appium-uiautomator2-driver": "8.7.3",
+    "appium-xcuitest-driver": "12.22.3",
+    "chai": "6.3.0",
+    "dotenv": "18.0.9",
+    "eslint": "10.13.0",
+    "eslint-plugin-chai-friendly": "1.2.1",
+    "eslint-plugin-wdio": "10.1.0",
+    "globals": "17.13.0",
+    "husky": "9.1.7",
+    "lint-staged": "17.6.0",
+    "markdownlint-cli2": "0.24.0",
+    "prettier": "3.9.10",
+    "yaml": "2.9.1",
+    "jsonc-parser": "3.3.1"
   },
   "overrides": {
-    "serialize-javascript": "^7.0.5",
+    "serialize-javascript": "^7.1.4",
     "axios": "^1.20.0",
     "shell-quote": "^1.11.0",
     "proxy-addr": "^2.0.8",
     "morgan": "^1.12.1",
-    "brace-expansion@5": "^5.0.12"
+    "brace-expansion@5": "^5.0.12",
+    "fast-uri@3": "^3.1.9",
+    "@allurereport/web-commons": {
+      "dompurify": "3.4.17"
+    }
   },
   "allowScripts": {
     "edgedriver": false,

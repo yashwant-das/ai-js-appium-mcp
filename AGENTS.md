@@ -1,8 +1,6 @@
-# AGENTS.md
-
 # ai-js-appium-mcp - AI Agent Instructions
 
-> This file is for the AI agent. People start at [README.md](README.md); [docs/framework.md](docs/framework.md) explains the code the agent works with.
+> This file is for the AI agent. People start at [README.md](README.md); [docs/architecture.md](docs/architecture.md) explains the code the agent works with.
 
 ## Purpose
 
@@ -23,7 +21,7 @@ This repository intentionally does **not** include a prompt parser, custom code 
 
 ---
 
-# High-Level Workflow
+## High-Level Workflow
 
 ```text
 Markdown Test Plan
@@ -57,7 +55,7 @@ Repeat
 
 ---
 
-# Primary Objective
+## Primary Objective
 
 Given a Markdown test plan, generate a complete, executable WebdriverIO test that successfully automates the requested scenario.
 
@@ -70,13 +68,13 @@ A task is complete only when:
 
 ---
 
-# Agent Workflow
+## Agent Workflow
 
 Always follow this sequence.
 
 ---
 
-## Step 1 — Read the Test Plan
+### Step 1 — Read the Test Plan
 
 Read the Markdown file provided by the user.
 
@@ -96,7 +94,7 @@ Do not modify or reinterpret the business requirements.
 
 ---
 
-## Step 2 — Determine the Execution Context
+### Step 2 — Determine the Execution Context
 
 The app under test is configured once in `app.config.js`. Device settings live in `.env`.
 
@@ -104,7 +102,7 @@ Do not pass app identifiers (`APP_BUNDLE_ID`, `APP_PACKAGE`) on the command line
 
 ---
 
-## Step 3 — Connect to the Device
+### Step 3 — Connect to the Device
 
 Assume the user has already:
 
@@ -126,7 +124,7 @@ Typical flow:
 
 ---
 
-## Step 4 — Analyze the Application
+### Step 4 — Analyze the Application
 
 Before generating automation, inspect the running application using Appium MCP.
 
@@ -152,7 +150,7 @@ Prefer inspecting the application over guessing selectors.
 
 ---
 
-## Step 5 — Generate the Test
+### Step 5 — Generate the Test
 
 Build the test on screen objects.
 
@@ -176,7 +174,7 @@ Save the test as `tests/<scenario>.test.js`, matching the prompt's `test:` field
 
 ---
 
-## Step 6 — Execute the Test
+### Step 6 — Execute the Test
 
 Run only the test you are working on:
 
@@ -188,7 +186,7 @@ Then run `npm run lint`. Before reporting success, run the full suite with `npm 
 
 ---
 
-## Step 7 — Diagnose Failures
+### Step 7 — Diagnose Failures
 
 If execution fails, investigate using:
 
@@ -215,7 +213,7 @@ Avoid guessing.
 
 ---
 
-## Step 8 — Improve the Test
+### Step 8 — Improve the Test
 
 Update only what is necessary, in the right place:
 
@@ -227,7 +225,7 @@ Keep the generated automation simple and maintainable.
 
 ---
 
-## Step 9 — Repeat
+### Step 9 — Repeat
 
 Execute the updated test again.
 
@@ -240,7 +238,7 @@ Do not stop after the first failure.
 
 ---
 
-## Step 10 — Notify the User
+### Step 10 — Notify the User
 
 Once the test passes, inform the user that:
 
@@ -250,7 +248,7 @@ Once the test passes, inform the user that:
 
 ---
 
-# Appium MCP Usage Guidelines
+## Appium MCP Usage Guidelines
 
 Appium MCP is the automation interface used to inspect and interact with the running application.
 
@@ -268,35 +266,35 @@ Choose the Appium MCP tools that best fit the scenario. Prefer reliable and stab
 
 ---
 
-# Recommended Tool Usage
+## Recommended Tool Usage
 
-## Session Management
+### Session Management
 
 - `select_device`
 - `prepare_ios_simulator`
 - `appium_session_management`
 
-## Application Analysis
+### Application Analysis
 
 - `generate_locators`
 - `appium_find_element`
 - `appium_get_page_source`
 - `appium_screenshot`
 
-## Navigation
+### Navigation
 
 - `appium_gesture`
 - `appium_set_value`
 - `appium_context`
 
-## Validation
+### Validation
 
 - `appium_get_text`
 - `appium_find_element`
 
 ---
 
-# Locator Strategy
+## Locator Strategy
 
 Prefer stable locators using the following priority:
 
@@ -308,7 +306,7 @@ Avoid brittle XPath whenever possible.
 
 ---
 
-# Test Generation Principles
+## Test Generation Principles
 
 Generated tests should be:
 
@@ -328,7 +326,7 @@ Avoid:
 
 ---
 
-# Failure Recovery
+## Failure Recovery
 
 When a test fails:
 
@@ -341,7 +339,7 @@ Repeat until the test passes successfully.
 
 ---
 
-# Repository Responsibilities
+## Repository Responsibilities
 
 This repository provides:
 
@@ -367,13 +365,13 @@ Those responsibilities remain with the user and the AI agent.
 
 ---
 
-# Adopting the kit for another app
+## Adopting the kit for another app
 
 If the user asks you to switch the kit to a different app, follow [Using it for your own app](README.md#using-it-for-your-own-app) in the README.
 
 ---
 
-# Success Criteria
+## Success Criteria
 
 A task is complete only when:
 
