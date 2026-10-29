@@ -6,24 +6,30 @@
 
 | Boundary | Appium MCP | `npm test` |
 | --- | --- | --- |
-| **When** | While the agent is writing or fixing a test | Whenever a test runs, by you, the agent or CI |
+| **When** | While the agent is writing or fixing a test | Whenever you or the agent run a device suite; current CI runs offline checks only |
 | **Who uses it** | The AI agent | WebdriverIO |
 | **What drives the app** | By default, Appium MCP's own bundled XCUITest/UiAutomator2 drivers | The Appium server you start with `npm run appium` |
 | **Output** | Information for the agent: element trees, locators, screenshots | Pass or fail, failure artifacts, Allure results |
 
-Appium MCP never runs your tests and is not a dependency of this repo. The tests only need the Appium server. The agent uses MCP to find out what the app looks like, then writes code that WebdriverIO runs without it.
+This repository does not use Appium MCP to execute committed tests, and MCP is not a dependency of this repo. Execution needs the locked WDIO dependencies, an Appium server and the configured device/app. The agent uses MCP to find out what the app looks like, then writes code that WebdriverIO runs without it.
 
 ## 1. Install
 
-Appium MCP runs with `npx`, so there is nothing to install in this repo. Use this project’s Node 24 baseline; iOS needs Xcode and Android needs the SDK with `ANDROID_HOME` set. Check the selected MCP version’s requirements before updating it. See its [README](https://github.com/appium/appium-mcp) for the full list.
+Appium MCP runs with `npx`, so there is nothing to install in this repo. Use this project’s Node 24 baseline; iOS needs Xcode; Android needs the SDK, a compatible JDK, `ANDROID_HOME` and `JAVA_HOME` set, and `adb` on `PATH`. Check the selected MCP version’s requirements before updating it. See its [README](https://github.com/appium/appium-mcp) for the full list.
 
 ## 2. Add it to your agent
 
-The version-pinned examples use three settings: a server name (`appium-mcp`), the command `npx -y appium-mcp@1.97.1`, and, for Android, the `ANDROID_HOME` environment variable. Only the config format differs.
+The version-pinned examples use three settings: a server name (`appium-mcp`), the command `npx -y appium-mcp@1.97.1`, and, for Android, the `ANDROID_HOME` environment variable. The following launcher examples use `npx`; the historical configurations below instead point to a separate local installation.
 
 ### Historically tested configurations
 
-The existing integration record used appium-mcp 1.97.1, Appium 3.8.0 and appium-xcuitest-driver 12.18.1; these configurations have not been revalidated against the updated lockfile. These run Appium MCP from a local install; replace `<path-to>` with your own paths.
+The existing integration record used appium-mcp 1.97.1, Appium 3.8.0 and appium-xcuitest-driver 12.18.1; these configurations have not been revalidated against the updated lockfile. These run Appium MCP from a local install; replace `<path-to>` with your own paths. For example, install it outside the repository:
+
+```bash
+npm install --prefix "$HOME/.local/share/appium-mcp" appium-mcp@1.97.1
+```
+
+For that command, `<path-to>` in the JSON configurations is your expanded `$HOME/.local/share/appium-mcp` installation directory.
 
 #### Antigravity
 

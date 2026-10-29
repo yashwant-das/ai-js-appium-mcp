@@ -21,7 +21,7 @@ flowchart TD
 
 The agent interprets Markdown; the repository has no prompt parser, custom generator or test DSL. MCP is an external authoring dependency. Committed tests execute through WebdriverIO and the user-started Appium server without MCP or an AI agent.
 
-One worker and one Appium session at a time avoid competing device commands. The session uses `noReset: true`: app data persists, while the per-test reset terminates and activates the app and recovers known screens. This is navigation recovery, not a clean installation or a guarantee that all app state is erased.
+`maxInstances: 1` serializes this WDIO runner’s sessions. It does not prevent a separate MCP client or runner from using the same device; coordinate those clients explicitly. The session uses `noReset: true`: app data persists, while the per-test reset terminates and activates the app and recovers known screens. This is navigation recovery, not a clean installation or a guarantee that all app state is erased.
 
 Cleanup is best effort. Tasks run newest first and failures become warnings and Allure attachments; they do not fail an otherwise passing test. Failure artifact capture runs before cleanup; if screenshot capture itself throws, the current hook does not reach cleanup. Tests may therefore leave contacts behind after interrupted runs. These boundaries matter when diagnosing isolation problems.
 
@@ -83,12 +83,12 @@ What `BaseScreen` gives every screen:
 | `el(locators, label)` | `$(sel(...))`, the usual way to define an element. |
 | `waitForDisplayed()`, `isDisplayed()` | Wait for, or check, the root element. |
 | `tap(el)`, `type(el, text)` | Wait for the element, then click it, or clear it and type. |
-| `tapIfVisible(el, timeout)` | Tap only if the element shows up; never throws. |
-| `scrollTo(el)` | Swipe until the element is on screen. |
+| `tapIfVisible(el, timeout)` | Returns false if the visibility wait fails; clicks a visible element. Click errors propagate. |
+| `scrollTo(el)` | Returns if already displayed; otherwise delegates to native `scrollIntoView` with a five-scroll limit. |
 
-**Two platforms, one test.** Every element has an iOS and an Android locator, and the screen picks the right one at run time. When the apps' flows differ, the method branches internally and keeps one name. For example, `EditContactScreen.deleteContact()` scrolls to "Delete Contact" on iOS but opens the toolbar menu on Android, and `NewContactScreen.fill()` taps "add phone" only on iOS, because Android shows an empty phone field from the start. Tests never check the platform.
+**Two platforms, one test.** Shared elements provide platform locators, and the screen picks the right one at run time. Platform-only controls (such as iOS’s add-phone button and Android’s delete-menu item) intentionally have a locator for just that platform and are accessed inside platform branches. When the apps' flows differ, the method branches internally and keeps one name. For example, `EditContactScreen.deleteContact()` scrolls to "Delete Contact" on iOS but opens the toolbar menu on Android, and `NewContactScreen.fill()` taps "add phone" only on iOS, because Android shows an empty phone field from the start. Tests never check the platform.
 
-`screens/android.js` builds the Android selectors. Google Contacts is mostly Jetpack Compose, with few resource IDs, so many locators match on text: `android.id('large_title')`, `android.text('Save')`, `android.editText('First name')`, `android.scrollToText('Email')`.
+`screens/android.js` builds the Android selectors. The inspected Google Contacts UI used Compose elements with few resource IDs, so this implementation often locates controls by text: `android.id('large_title')`, `android.text('Save')`, `android.editText('First name')`, `android.scrollToText('Email')`.
 
 Conventions:
 
@@ -126,7 +126,7 @@ Rules, some enforced by lint:
 
 - No raw selectors (`$`, `$$`, `browser.$`, `driver.$`). Lint fails with "Use a screen object method instead of a raw selector."
 - No app reset in the test; `beforeTest` does it.
-- Generated data, not fixed names, and a cleanup registered **before** the data is created, so it still runs if the test fails halfway.
+- Generated data, not fixed names, and a cleanup registered **before** the data is created, so it remains queued if the test fails halfway. The after-test hook attempts cleanup; an interrupted run or artifact-capture error can prevent it.
 
 ### `support/`: shared machinery
 
@@ -135,7 +135,7 @@ Rules, some enforced by lint:
 | `appConfig.js` | `resolveApp(platform)` reads `app.config.js` and env overrides. |
 | `appState.js` | `restartApp()`, `dismissLeftovers()` and `resetToHome()`. **App-specific:** `dismissLeftovers` knows which Contacts screens can be left open, and `resetToHome` waits for the contacts list. |
 | `hooks.js` | `beforeTest` (reset) and `afterTest` (failure artifacts, then cleanup). |
-| `testData.js` | `uniqueContact(overrides)` returns `{ first, last, phone, email, fullName }` with a last name like `Doe-<runId><n>`, unique within and across runs. |
+| `testData.js` | `uniqueContact(overrides)` returns `{ first, last, phone, email, fullName }` with a last name like `Doe-<runId><n>`, using a process-start timestamp and per-process counter to reduce collisions; cross-process uniqueness is not guaranteed if processes start in the same millisecond. |
 | `cleanup.js` | `registerCleanup(name, fn)` queues a task; `afterTest` runs the queue newest first. |
 | `gestures.js` | `tapIfVisible` and `scrollTo`, used by `BaseScreen`. |
 

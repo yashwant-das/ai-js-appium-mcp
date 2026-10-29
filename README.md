@@ -48,8 +48,8 @@ sequenceDiagram
 | --- | --- |
 | **You** | Boot a simulator or emulator, start Appium, write the scenario as a Markdown file in `prompts/`, ask the agent to automate it, review what it wrote. |
 | **AI agent** (Claude Code, Cursor, OpenCode, Gemini CLI, …) | Follows [AGENTS.md](AGENTS.md): reads your scenario, looks at the running app through Appium MCP, writes screen-object methods and the test, runs it with `npm test`, and fixes it until it passes. |
-| **[Appium MCP](https://github.com/appium/appium-mcp)** | The agent's eyes and hands while it writes a test: it reads the screen's element tree, suggests locators, taps and types. By default it drives the simulator with its own bundled drivers. It is only used while a test is being written, never when tests run. |
-| **This framework** | Makes tests reliable and repeatable: one config for the app and device, screen objects that hold every locator, a reset to the app's home screen before each test, unique test data that is deleted afterwards, failure screenshots, an Allure report and lint rules for agent-written code. |
+| **[Appium MCP](https://github.com/appium/appium-mcp)** | The agent's eyes and hands while it writes a test: it reads the screen's element tree, suggests locators, taps and types. By default it drives the simulator with its own bundled drivers. This repository uses MCP for inspection during authoring; committed WDIO tests run independently of MCP. |
+| **This framework** | Provides app/device configuration, screen objects, a reset to the app’s home screen before each test, generated test data with best-effort cleanup, failure artifacts, Allure reporting and lint rules for agent-written code. |
 | **Appium server** (`npm run appium`) | Drives the app on the simulator or emulator when tests run with `npm test`. |
 
 ### Project structure
@@ -84,7 +84,7 @@ Exact dependency versions live in [package.json](package.json) and [package-lock
 
 ## Quickstart
 
-Use Node 24 and npm 10 or newer. For iOS, use macOS, Xcode, an iOS Simulator and Apple Contacts. For Android, install the Android SDK, an emulator and Google Contacts, and export `ANDROID_HOME` in the Appium terminal. Examples use English UI labels. [Detailed setup](docs/development.md#setup) covers device configuration and [MCP setup](docs/appium-mcp.md) covers agent authoring.
+Use Node 24 and npm 10 or newer. For iOS, use macOS, Xcode, an iOS Simulator and Apple Contacts. For Android, install the Android SDK, a compatible JDK, an emulator and Google Contacts. Set `ANDROID_HOME` and `JAVA_HOME`, and make `adb` available on `PATH` in the Appium terminal. Examples use English UI labels. [Detailed setup](docs/development.md#setup) covers device configuration and [MCP setup](docs/appium-mcp.md) covers agent authoring.
 
 ```bash
 git clone https://github.com/yashwant-das/ai-js-appium-mcp.git
@@ -129,7 +129,7 @@ The agent's intended loop is inspect, generate, execute and diagnose until the s
 
 | Test | Prompt | What it checks |
 | --- | --- | --- |
-| [create-contact](tests/create-contact.test.js) | [prompt](prompts/create-contact.md) | A new contact with phone and email is saved and found by search |
+| [create-contact](tests/create-contact.test.js) | [prompt](prompts/create-contact.md) | Creates a contact with phone/email; asserts the saved name and search result |
 | [search-contact](tests/search-contact.test.js) | [prompt](prompts/search-contact.md) | Search finds a contact by full name and by last name |
 | [edit-contact](tests/edit-contact.test.js) | [prompt](prompts/edit-contact.md) | A changed phone number shows on the contact card |
 | [delete-contact](tests/delete-contact.test.js) | [prompt](prompts/delete-contact.md) | A deleted contact no longer appears in search |

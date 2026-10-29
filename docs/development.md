@@ -7,7 +7,7 @@ Detailed setup, configuration, maintenance and verification for the [mobile test
 You need Node.js 24, an MCP-capable AI agent, and the tools for the platform you test:
 
 - **iOS:** macOS with Xcode and an iOS Simulator.
-- **Android:** Android Studio with an emulator and Google Contacts (historical checks used Android 17, API 37; full-suite validation remains pending), and `ANDROID_HOME` set to your SDK path (usually `~/Library/Android/sdk` on macOS) in the terminal that runs Appium.
+- **Android:** Android Studio with an emulator and Google Contacts (historical checks used Android 17, API 37; full-suite validation remains pending), plus a compatible JDK. Set `JAVA_HOME` to that JDK, set `ANDROID_HOME` to your SDK path (usually `~/Library/Android/sdk` on macOS), and put the SDK’s `platform-tools` directory on `PATH` in the terminal that runs Appium. The locked UiAutomator2 driver documents these prerequisites in its [requirements](https://github.com/appium/appium-uiautomator2-driver#requirements); choose the JDK required by your installed Android toolchain.
 
 ```bash
 git clone https://github.com/yashwant-das/ai-js-appium-mcp.git && cd ai-js-appium-mcp
@@ -147,17 +147,19 @@ Direct dependencies are pinned in `package.json` and resolved in `package-lock.j
 
 Existing install-script policy and overrides are retained. Audit review additionally updated `serialize-javascript` to `^7.1.4`, constrained `fast-uri@3` to `^3.1.9`, and pins DOMPurify `3.4.17` only under `@allurereport/web-commons`. These address the observed affected paths without changing direct dependency majors; they do not prove overall safety. Weekly Dependabot updates cover npm and GitHub Actions; major upgrades still require explicit compatibility review. Appium MCP stays external and independent of this lockfile; the MCP guide distinguishes historical configurations from fresh validation.
 
-### Remaining audit constraint
+### Audit snapshots and remaining constraints
 
-`npm audit` on 2026-10-28 reports four low-severity affected packages in one chain: `markdownlint-cli2` → `markdownlint` → `micromark-extension-math` → `katex` (`0.16.47`). [GHSA-238p-pmpm-9mq7](https://github.com/advisories/GHSA-238p-pmpm-9mq7) concerns trust restrictions when prototype pollution already exists. The advisory lists a fix at KaTeX `0.18.2`; the math extension resolves the `0.16` compatibility line. A forced transitive compatibility jump or CLI downgrade is deferred rather than silently overriding that boundary. Mitigation: lint repository-controlled Markdown and do not use this CLI as a service for untrusted documents. Owner: Yashwant Das. Review trigger: an upstream compatible fix or a separately reviewed math-parser upgrade. There are no moderate, high or critical findings in this audit snapshot; this is not an audit-clean claim.
+`npm audit` on 2026-10-28 reports four low-severity affected packages in one chain: `markdownlint-cli2` → `markdownlint` → `micromark-extension-math` → `katex` (`0.16.47`). [GHSA-238p-pmpm-9mq7](https://github.com/advisories/GHSA-238p-pmpm-9mq7) concerns trust restrictions when prototype pollution already exists. The advisory lists a fix at KaTeX `0.18.2`; the math extension resolves the `0.16` compatibility line. A forced transitive compatibility jump or CLI downgrade is deferred rather than silently overriding that boundary. Mitigation: lint repository-controlled Markdown and do not use this CLI as a service for untrusted documents. Owner: Yashwant Das. Review trigger: an upstream compatible fix or a separately reviewed math-parser upgrade. That 2026-10-28 snapshot had no moderate, high or critical findings; it is historical evidence, not a claim about later advisory data.
+
+A fresh audit on **2026-10-29**, against the unchanged lockfile, reports **five affected packages: three high and two low**. The additional high-severity chain is `markdownlint-cli2` → `markdownlint` → `re2js` (`2.8.6`): [GHSA-gg6h-894w-4m9c](https://github.com/advisories/GHSA-gg6h-894w-4m9c) describes quadratic-time lookbehind matching; its affected range is `>=2.2.0 <2.8.7`. These are three affected-package entries for one high-severity advisory, not three distinct high advisories. The two low entries are KaTeX and its math-extension parent. No critical or moderate findings appear in this fresh snapshot. This documentation review does not change dependencies; review a compatible RE2JS fix and rerun the gates before closing this finding. Owner: Yashwant Das; review trigger: the next dependency/security update. Until then, avoid feeding untrusted Markdown to the tooling and retain CI’s job timeout.
 
 ### Integration prerequisites and pending checks
 
-With host access, `adb devices -l` listed no attached devices, `xcrun simctl list devices booted` listed no booted simulators, and `http://127.0.0.1:4723/status` refused connections. The repository instructs agents to reuse user-started Appium and devices, so these were not started for adoption. No Appium MCP tool connection is available in this chat.
+During the 2026-10-28 adoption checks, with host access, `adb devices -l` listed no attached devices, `xcrun simctl list devices booted` listed no booted simulators, and `http://127.0.0.1:4723/status` refused connections. The repository instructs agents to reuse user-started Appium and devices, so these were not started for adoption. No Appium MCP tool connection was available for those checks.
 
 Both full mobile suites, two-run stability checks, MCP authoring and a fresh Allure screenshot are **skipped**, not passed. Review trigger: user provides booted devices, installed Contacts apps and a running Appium server; run both suites twice without retries before asserting mobile compatibility for the updated dependency set. Historical Android create/search/delete individual passes are recorded in the roadmap; edit and full-suite validation remain pending.
 
-### Final local verification
+### Adoption verification (2026-10-28)
 
 Validation used an isolated Node **24.22.1** binary with npm **11.20.0**; the system Node 26 was not used for the acceptance run.
 
@@ -184,4 +186,8 @@ All matched files use Prettier code style!
 ℹ fail 0
 ```
 
-The original 17 helper/lint tests and four mobile scenario implementations are preserved. Added validator tests cover accepted JSON/JSONC/Markdown hard breaks and rejected whitespace, missing newline, conflict markers, malformed JSON, duplicate YAML keys and binary-only staged selections. Formatting changes to existing JavaScript are mechanical; no scenario actions or assertions changed.
+The original 17 helper/lint tests and four mobile scenario implementations are preserved. Added validator tests cover accepted JSON, JSONC, Markdown hard breaks and binary-only staged selections, plus rejected trailing whitespace, missing newlines, conflict markers, malformed JSON and duplicate YAML keys. Formatting changes to existing JavaScript are mechanical; no scenario actions or assertions changed.
+
+### Documentation accuracy review (2026-10-29)
+
+Rechecked the README and maintained guides against manifests, the lockfile, runner configs, screen objects, helper implementations and CI. Corrected platform-locator and cleanup guarantees, visibility-helper error behavior, generated-data uniqueness wording, create-contact assertion scope, Android JDK/environment prerequisites, and the distinction between MCP authoring and test execution. A fresh `npm run check` passed all 26 tests and the other offline gates on the currently installed Node 26.13.0 / npm 11.20.0. Node 24 acceptance evidence above remains historical; PR #7’s Node 24 workflow also passed for revision `4aa4863` before these documentation corrections. The two audit snapshots above deliberately retain their dates because advisory results changed without a lockfile change. Mobile and external agent configurations have not been revalidated by this review.
