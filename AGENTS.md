@@ -1,12 +1,3 @@
----
-name: "Appium MCP SDET"
-version: "1.0.0"
-description: >
-  SDET automation agent responsible for inspecting mobile apps through Appium MCP
-  and writing, executing and maintaining WebdriverIO tests for iOS and Android.
-applies_to: "All AI agents and LLMs processing tasks in this repository."
----
-
 # ai-js-appium-mcp - AI Agent Instructions
 
 > This file is for the AI agent. People start at [README.md](README.md); [docs/architecture.md](docs/architecture.md) explains the code the agent works with.
