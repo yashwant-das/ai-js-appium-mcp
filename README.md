@@ -56,17 +56,26 @@ sequenceDiagram
 
 ```text
 ai-js-appium-mcp/
-├── app.config.js        # App identity; device settings are in .env.example
-├── AGENTS.md            # Agent workflow and engineering rules
-├── prompts/             # Current scenarios, template and archived examples
-├── tests/               # Create, search, edit and delete Contacts scenarios
-├── screens/             # Platform locators, screen actions and shared flows
-├── support/             # Reset, hooks, data, cleanup and gestures
-├── config/              # Shared WebdriverIO, iOS and Android capabilities
-├── unit/                # Device-free tests for helpers and quality rules
-├── scripts/             # Text and configuration validation
-├── .github/             # Offline CI and dependency update configuration
-└── docs/                # Architecture, development, MCP, roadmap and records
+├── AGENTS.md                   # Detailed AI-agent workflow and rules
+├── app.config.js               # App identity
+├── .env.example                # Device and Appium settings template
+├── prompts/                    # Current scenarios, template and archived examples
+├── tests/                      # Create, search, edit and delete Contacts scenarios
+├── screens/                    # Platform locators, screen actions and shared flows
+├── support/                    # Reset, hooks, data, cleanup and gestures
+├── config/                     # Shared WebdriverIO, iOS and Android capabilities
+├── unit/                       # Device-free tests for helpers and quality rules
+├── scripts/                    # Text and configuration validation
+├── .github/
+│   ├── dependabot.yml          # Weekly npm and GitHub Actions updates
+│   └── workflows/
+│       └── lint.yml            # Offline quality gates on Node 24
+└── docs/
+    ├── architecture.md         # Components, lifecycle and screen conventions
+    ├── development.md          # Setup, configuration, checks and evidence
+    ├── appium-mcp.md           # Agent connection and MCP setup
+    ├── roadmap.md              # Active improvements and pending validation
+    └── superpowers/            # Historical design and implementation records
 ```
 
 ### Tech stack
